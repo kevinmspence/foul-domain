@@ -50,7 +50,7 @@ export async function getServerSideProps(context) {
     const venueImagePath = path.join(publicDir, venueImage);
     if (fs.existsSync(venueImagePath)) return venueImage;
 
-    return '/default.png';
+    return '/default2.png';
   }
 
   const backgroundImage = getShowBackgroundPath(show);
