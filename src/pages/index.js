@@ -1,115 +1,77 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import Image from 'next/image';
+import Link from 'next/link';
+import Head from 'next/head';
+import SearchBox from '@/components/SearchBox';
 
 export default function Home() {
   return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <>
+      <Head>
+        <title>Foul Domain – Phish Setlists, Songs, and Shows</title>
+        <meta
+          name="description"
+          content="Search the complete history of Phish setlists and songs. Discover every show, performance, and special moment—cataloged in the tongue of the Book."
         />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/pages/index.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+        <meta property="og:title" content="Foul Domain – Phish Setlists, Songs, and Shows" />
+        <meta
+          property="og:description"
+          content="Search the complete history of Phish setlists and songs. Discover every show, performance, and special moment—cataloged in the tongue of the Book."
+        />
+        <meta property="og:type" content="website" />
+        <link rel="canonical" href="https://fouldomain.com/" />
+        <link rel="preload" as="image" href="/gamehendge.webp" />
+      </Head>
+
+      <div className="w-screen h-screen relative overflow-hidden">
+        <Image
+          src="/gamehendge.webp"
+          alt=""
+          fill
+          priority
+          className="object-cover object-center z-0"
+        />
+
+        {/* Centered content container */}
+        <div className="absolute inset-0 flex items-center justify-center sm:justify-start px-4 sm:px-10 md:px-20 lg:px-32 z-10">
+          <div className="flex flex-col items-center w-full max-w-[480px] text-center animate-fadeInUp">
+            
+            {/* Logo */}
             <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+              src="/foul-domain.webp"
+              alt="Foul Domain Logo"
+              width={375}
+              height={100}
+              priority
+              className="w-[75%] max-w-[375px] h-auto mb-3"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+
+            {/* Tagline */}
+            <p className="text-yellow-100 text-base sm:text-lg md:text-xl font-ticket max-w-xs sm:max-w-sm md:max-w-md mb-3 leading-snug">
+              All that&apos;s been played shall be known — <br className="hidden sm:block" />
+              if you ask in the tongue of the Book.
+            </p>
+
+            {/* Search Box */}
+            <SearchBox containerClass="mb-6 w-full max-w-[90vw] sm:max-w-[375px]" />
+
+            {/* OR Divider */}
+            <div className="text-orange-500 font-bold text-lg sm:text-xl tracking-widest mt-6 mb-2">
+              OR
+            </div>
+
+            {/* Browse Button */}
+            <Link href="/book" className="mt-2 w-[70%] max-w-[285px]">
+              <Image
+                src="/browse-the-archives.png"
+                alt="Browse the Archives"
+                width={285}
+                height={80}
+                className="transition-transform duration-200 w-full h-auto"
+              />
+            </Link>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </div>
+    </>
   );
 }
