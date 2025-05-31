@@ -1,0 +1,133 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "dynamicRoutes": [
+    {
+      "page": "/api/collections/[slug]",
+      "regex": "^/api/collections/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/api/collections/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/collection/[slug]",
+      "regex": "^/collection/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/collection/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/shows/[showDate]",
+      "regex": "^/shows/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPshowDate": "nxtPshowDate"
+      },
+      "namedRegex": "^/shows/(?<nxtPshowDate>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/songs/[slug]",
+      "regex": "^/songs/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/songs/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/year/[year]",
+      "regex": "^/year/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPyear": "nxtPyear"
+      },
+      "namedRegex": "^/year/(?<nxtPyear>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/book",
+      "regex": "^/book(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/book(?:/)?$"
+    },
+    {
+      "page": "/songs",
+      "regex": "^/songs(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/songs(?:/)?$"
+    }
+  ],
+  "dataRoutes": [
+    {
+      "page": "/book",
+      "dataRouteRegex": "^/_next/data/Pdj_gY6_PTll8YTKIAwRf/book\\.json$"
+    },
+    {
+      "page": "/collection/[slug]",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "dataRouteRegex": "^/_next/data/Pdj_gY6_PTll8YTKIAwRf/collection/([^/]+?)\\.json$",
+      "namedDataRouteRegex": "^/_next/data/Pdj_gY6_PTll8YTKIAwRf/collection/(?<nxtPslug>[^/]+?)\\.json$"
+    },
+    {
+      "page": "/shows/[showDate]",
+      "routeKeys": {
+        "nxtPshowDate": "nxtPshowDate"
+      },
+      "dataRouteRegex": "^/_next/data/Pdj_gY6_PTll8YTKIAwRf/shows/([^/]+?)\\.json$",
+      "namedDataRouteRegex": "^/_next/data/Pdj_gY6_PTll8YTKIAwRf/shows/(?<nxtPshowDate>[^/]+?)\\.json$"
+    },
+    {
+      "page": "/songs/[slug]",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "dataRouteRegex": "^/_next/data/Pdj_gY6_PTll8YTKIAwRf/songs/([^/]+?)\\.json$",
+      "namedDataRouteRegex": "^/_next/data/Pdj_gY6_PTll8YTKIAwRf/songs/(?<nxtPslug>[^/]+?)\\.json$"
+    },
+    {
+      "page": "/year/[year]",
+      "routeKeys": {
+        "nxtPyear": "nxtPyear"
+      },
+      "dataRouteRegex": "^/_next/data/Pdj_gY6_PTll8YTKIAwRf/year/([^/]+?)\\.json$",
+      "namedDataRouteRegex": "^/_next/data/Pdj_gY6_PTll8YTKIAwRf/year/(?<nxtPyear>[^/]+?)\\.json$"
+    }
+  ],
+  "rsc": {
+    "header": "RSC",
+    "varyHeader": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch",
+    "prefetchHeader": "Next-Router-Prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc",
+    "prefetchSegmentHeader": "Next-Router-Segment-Prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments"
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  },
+  "rewrites": []
+}

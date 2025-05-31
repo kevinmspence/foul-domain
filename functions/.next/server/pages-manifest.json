@@ -1,0 +1,23 @@
+{
+  "/_app": "pages/_app.js",
+  "/_document": "pages/_document.js",
+  "/_error": "pages/_error.js",
+  "/api/collections/[slug]": "pages/api/collections/[slug].js",
+  "/api/all-dates": "pages/api/all-dates.js",
+  "/api/debug/clear-cache": "pages/api/debug/clear-cache.js",
+  "/api/hello": "pages/api/hello.js",
+  "/api/collections/archive": "pages/api/collections/archive.js",
+  "/api/collections/songs/archive": "pages/api/collections/songs/archive.js",
+  "/api/search": "pages/api/search.js",
+  "/api": "pages/api.js",
+  "/api/songs/archive": "pages/api/songs/archive.js",
+  "/api/shows": "pages/api/shows.js",
+  "/": "pages/index.html",
+  "/songs": "pages/songs.html",
+  "/shows/[showDate]": "pages/shows/[showDate].js",
+  "/book": "pages/book.js",
+  "/collection/[slug]": "pages/collection/[slug].js",
+  "/year/[year]": "pages/year/[year].js",
+  "/songs/[slug]": "pages/songs/[slug].js",
+  "/404": "pages/404.html"
+}
