@@ -1,15 +1,14 @@
-@tailwind utilities;
-
-/* globals.css */
-.font-handwritten {
-  font-family: 'Rock Salt', cursive !important;
-}
+/* src/styles/globals.css */
 
 body {
-  @apply font-sans;
+  font-family: sans-serif;
+  background-color: black;
   margin: 0;
   padding: 0;
-  background-color: black;
+}
+
+.font-handwritten {
+  font-family: 'Rock Salt', cursive !important;
 }
 
 html, body, #__next {
