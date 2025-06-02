@@ -1,16 +1,9 @@
 {
   "buildCommand": "next build",
   "outputDirectory": ".next",
-  "framework": "nextjs",
-  "functions": {
-    "api/**.js": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
-  "env": {
-    "DATABASE_URL": "@database_url",
-    "PHISH_API_KEY": "@phish_api_key",
-    "NEXT_PUBLIC_BASE_URL": "@next_public_base_url"
-  }
+  "installCommand": "npm install",
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/:path*" }
+  ]
 }
