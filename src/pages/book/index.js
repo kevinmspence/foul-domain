@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ScrollWrapper from "@/components/ScrollWrapper";
-import prisma from "@/lib/prisma"; // adjust this path if your prisma client is elsewhere
+import sql from "@/lib/sql";
 
 const collectionLinks = [
   { name: "Halloween Shows", slug: "halloween" },
@@ -10,14 +10,20 @@ const collectionLinks = [
 ];
 
 export async function getServerSideProps() {
-  const shows = await prisma.show.findMany({
-    select: { showDate: true },
-  });
+  try {
+    const result = await sql`
+      SELECT DISTINCT EXTRACT(YEAR FROM "showdate")::int AS year FROM "Show";
+    `;
 
-  const yearSet = new Set(shows.map((s) => new Date(s.showDate).getFullYear()));
-  const years = Array.from(yearSet).sort((a, b) => a - b);
+    const years = result.map((r) => r.year).sort((a, b) => a - b);
 
-  return { props: { years } };
+    console.log("📆 Final Parsed Years from SQL:", years);
+
+    return { props: { years } };
+  } catch (error) {
+    console.error("❌ Error fetching years:", error);
+    return { props: { years: [] } };
+  }
 }
 
 export default function BookPage({ years }) {
@@ -26,11 +32,11 @@ export default function BookPage({ years }) {
       className="min-h-screen overflow-x-hidden text-yellow-100 font-ticket"
       style={{
         backgroundImage: "url('/backgrounds/library.png')",
-        backgroundColor: '#0d0d0d',
-        backgroundSize: 'cover',
-        backgroundAttachment: 'fixed',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'bottom right',
+        backgroundColor: "#0d0d0d",
+        backgroundSize: "cover",
+        backgroundAttachment: "fixed",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "bottom right",
       }}
     >
       <div className="min-h-screen text-yellow-100 font-ticket px-4 sm:px-6 py-12">

@@ -37,18 +37,17 @@ export default function SongArchivePage() {
   };
 
   return (
-  <div
-  className="min-h-screen overflow-x-hidden text-yellow-100 font-ticket"
-  style={{
-    backgroundImage: "url('/backgrounds/songs.png')",
-    backgroundColor: '#0d0d0d',
-    backgroundSize: 'cover',
-    backgroundAttachment: 'fixed',
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'bottom right',
-  }}
->
-
+    <div
+      className="min-h-screen overflow-x-hidden text-yellow-100 font-ticket"
+      style={{
+        backgroundImage: "url('/backgrounds/songs.png')",
+        backgroundColor: '#0d0d0d',
+        backgroundSize: 'cover',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'bottom right',
+      }}
+    >
       <Head>
         <title>Songs – Foul Domain</title>
         <meta

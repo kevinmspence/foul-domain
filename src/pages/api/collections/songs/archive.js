@@ -1,4 +1,5 @@
-import prisma from '@/lib/prisma';
+// pages/api/songs/archive.js
+import sql from '@/lib/sql';
 import { getOrCacheForever } from '@/lib/cache';
 
 export default async function handler(req, res) {
@@ -8,13 +9,14 @@ export default async function handler(req, res) {
     const songs = await getOrCacheForever(cacheKey, async () => {
       console.log('🟡 Cache miss: fetching distinct songs from DB');
 
-      const entries = await prisma.setlistEntry.findMany({
-        distinct: ['songName'],
-        select: { songName: true, songSlug: true },
-        orderBy: { songName: 'asc' },
-      });
+      const { rows } = await sql`
+        SELECT DISTINCT song AS "songName",
+               regexp_replace(lower(song), '[^a-z0-9]+', '-', 'g') AS "songSlug"
+        FROM "SetlistEntry"
+        ORDER BY song ASC;
+      `;
 
-      return entries.map((song) => ({
+      return rows.map((song) => ({
         name: song.songName,
         slug: song.songSlug,
       }));

@@ -1,5 +1,5 @@
 export default function ScrollWrapper({ title, children, size = "default" }) {
-  const prefix = size === "large" ? "scroll" : "blockprint-scroll";
+  const prefix = size === "large" ? "scroll" : "scroll";
 
   return (
     <div className="w-full max-w-full flex flex-col items-stretch drop-shadow-[0_8px_20px_rgba(0,0,0,0.5)]">
@@ -13,7 +13,7 @@ export default function ScrollWrapper({ title, children, size = "default" }) {
 
       {/* Middle */}
       <div
-        className="bg-repeat-y bg-[length:100%_auto] px-4 sm:px-8 py-8"
+        className="bg-repeat-y bg-[length:100%_auto] px-4 sm:px-8"
         style={{
           backgroundImage: `url(../${prefix}-middle.png)`,
         }}

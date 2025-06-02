@@ -1,47 +1,34 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import prisma from '@/lib/prisma';
+import axios from 'axios';
 
-export async function getServerSideProps(context) {
-  const { year } = context.params;
+export default function YearPage() {
+  const router = useRouter();
+  const { year } = router.query;
 
-  const startDate = new Date(`${year}-01-01`);
-  const endDate = new Date(`${parseInt(year, 10) + 1}-01-01`);
-
-  const shows = await prisma.show.findMany({
-    where: {
-      showDate: {
-        gte: startDate,
-        lt: endDate,
-      },
-    },
-    orderBy: {
-      showDate: 'asc',
-    },
-  });
-
-  const host = context.req.headers.host || 'fouldomain.com';
-  const protocol = context.req.headers['x-forwarded-proto'] || 'https';
-  const canonicalUrl = `${protocol}://${host}/year/${year}`;
-
-  return {
-    props: {
-      year,
-      shows: shows.map((s) => ({
-        ...s,
-        showDate: s.showDate.toISOString(),
-      })),
-      canonicalUrl,
-    },
-  };
-}
-
-export default function YearPage({ year, shows, canonicalUrl }) {
+  const [shows, setShows] = useState([]);
   const [visibleCount, setVisibleCount] = useState(25);
   const [sortField, setSortField] = useState('showDate');
   const [sortAsc, setSortAsc] = useState(false);
   const loaderRef = useRef(null);
+
+  useEffect(() => {
+    if (!year) return;
+
+    async function fetchShows() {
+      try {
+        const res = await axios.get(`/api/shows?year=${year}`);
+        setShows(res.data);
+        console.log("🔄 Shows returned from API:", res.data);
+      } catch (err) {
+        console.error('Error fetching shows', err);
+      }
+    }
+
+    fetchShows();
+  }, [year]);
 
   const sortedShows = [...shows].sort((a, b) => {
     const valA = sortField === 'showDate' ? new Date(a[sortField]) : a[sortField]?.toLowerCase();
@@ -73,6 +60,10 @@ export default function YearPage({ year, shows, canonicalUrl }) {
     };
   }, [loadMore]);
 
+  const canonicalUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/year/${year}`
+    : `https://fouldomain.com/year/${year}`;
+
   return (
     <>
       <Head>
@@ -102,6 +93,14 @@ export default function YearPage({ year, shows, canonicalUrl }) {
         }}
       >
         <div className="min-h-screen px-4 pb-20 pt-8 flex flex-col items-center font-ticket text-yellow-100">
+          {/* PHISH Banner - Half Size */}
+          <img
+            src="/phish-banner.png"
+            alt="Phish Banner"
+            className="w-full max-w-2xl mx-auto mb-6"
+          />
+
+          {/* Year Title */}
           <h1 className="text-6xl sm:text-7xl font-bold text-yellow-100 drop-shadow-md text-center mb-4">
             {year}
           </h1>
@@ -109,6 +108,7 @@ export default function YearPage({ year, shows, canonicalUrl }) {
             Each show from this year — unrolled below.
           </p>
 
+          {/* Scroll Content */}
           <div className="w-full max-w-5xl text-center">
             <img src="/scroll-top.png" alt="Scroll top" className="w-full" />
             <div
@@ -144,7 +144,7 @@ export default function YearPage({ year, shows, canonicalUrl }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {visibleShows.map((show, idx) => {
+                    {visibleShows.map((show) => {
                       const date = show.showDate?.split('T')[0];
                       return (
                         <tr

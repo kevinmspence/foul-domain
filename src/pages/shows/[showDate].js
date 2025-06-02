@@ -1,11 +1,11 @@
 import Head from 'next/head';
-import prisma from '@/lib/prisma';
 import SetScroll from '@/components/SetScroll';
 import ShowNotes from '@/components/ShowNotes';
 import Image from 'next/image';
 import Link from 'next/link';
 import fs from 'fs';
 import path from 'path';
+import sql from '@/lib/sql';
 
 export async function getServerSideProps(context) {
   const { showDate } = context.params;
@@ -14,52 +14,59 @@ export async function getServerSideProps(context) {
   const nextDay = new Date(parsedDate);
   nextDay.setDate(parsedDate.getDate() + 1);
 
-  const show = await prisma.show.findFirst({
-    where: {
-      showDate: {
-        gte: parsedDate,
-        lt: nextDay,
-      },
-    },
-    include: { entries: true },
-  });
+  const result = await sql`
+    SELECT * FROM "Show"
+    WHERE "showdate" >= ${parsedDate} AND "showdate" < ${nextDay}
+    LIMIT 1;
+  `;
 
-  if (!show) {
-    return { notFound: true };
-  }
+  const showRows = Array.isArray(result) ? result : result?.rows || [];
 
-  const allShows = await prisma.show.findMany({
-    select: { showDate: true },
-    orderBy: { showDate: 'asc' },
-  });
+  if (!Array.isArray(showRows) || !showRows.length) return { notFound: true };
 
-  const allDates = allShows.map((s) => s.showDate.toISOString().split('T')[0]);
-  const currentIndex = allDates.indexOf(showDate);
+  const show = {
+    ...showRows[0],
+    showdate: showRows[0].showdate.toISOString(),
+  };
+
+  const result2 = await sql`
+    SELECT * FROM "SetlistEntry"
+    WHERE "showid" = ${show.showid}
+    ORDER BY sequence ASC;
+  `;
+  const entries = Array.isArray(result2) ? result2 : result2?.rows || [];
+
+  const result3 = await sql`
+    SELECT "showdate" FROM "Show" ORDER BY "showdate" ASC;
+  `;
+  const allShowDates = Array.isArray(result3) ? result3 : result3?.rows || [];
+
+  const allDates = allShowDates.map((r) => r.showdate.toISOString().split('T')[0]);
+  const showDateStr = show.showdate.split('T')[0];
+  const currentIndex = allDates.indexOf(showDateStr);
   const prevShow = allDates[currentIndex - 1] || null;
   const nextShow = allDates[currentIndex + 1] || null;
 
-  function getShowBackgroundPath(show) {
-    const publicDir = path.join(process.cwd(), 'public');
+  const publicDir = path.join(process.cwd(), 'public');
+  const showImage = `/shows/${showDateStr}.png`;
+  const showImagePath = path.join(publicDir, showImage);
 
-    const showImage = `/shows/${show.showDate.toISOString().split('T')[0]}.png`;
-    const showImagePath = path.join(publicDir, showImage);
-    if (fs.existsSync(showImagePath)) return showImage;
-
+  let backgroundImage = '/default2.png';
+  if (fs.existsSync(showImagePath)) {
+    backgroundImage = showImage;
+  } else {
     const venueSlug = show.venue?.toLowerCase().replace(/[^a-z0-9]/g, '-');
     const venueImage = `/venues/${venueSlug}.png`;
     const venueImagePath = path.join(publicDir, venueImage);
-    if (fs.existsSync(venueImagePath)) return venueImage;
-
-    return '/default2.png';
+    if (fs.existsSync(venueImagePath)) backgroundImage = venueImage;
   }
-
-  const backgroundImage = getShowBackgroundPath(show);
 
   return {
     props: {
       show: {
         ...show,
-        showDate: show.showDate.toISOString().split('T')[0],
+        showDate: showDateStr,
+        entries,
       },
       allDates,
       prevShow,
@@ -73,16 +80,28 @@ export default function SetlistPage({ show, allDates, prevShow, nextShow, backgr
   const sets = { 1: [], 2: [], 3: [], encore: [], other: [] };
 
   for (const entry of show.entries) {
-    const rawSet = entry.rawData?.set;
-    const setNum = entry.setNumber;
+    const raw = entry.rawdata || entry.raw_data || {};
+    let parsed = {};
 
-    if (rawSet === 'e') {
-      sets.encore.push({ ...entry });
-    } else if ([1, 2, 3].includes(setNum)) {
-      sets[setNum].push(entry);
-    } else {
-      sets.other.push(entry);
+    if (typeof raw === 'string') {
+      try {
+        parsed = JSON.parse(raw);
+      } catch (e) {
+        console.warn('Invalid JSON in rawdata:', raw);
+        parsed = {};
+      }
+    } else if (typeof raw === 'object' && raw !== null) {
+      parsed = raw;
     }
+
+    entry.rawdata = parsed;
+
+    const setVal = parsed?.set?.toString().toLowerCase();
+    if (setVal === '1') sets[1].push(entry);
+    else if (setVal === '2') sets[2].push(entry);
+    else if (setVal === '3') sets[3].push(entry);
+    else if (setVal === 'e' || setVal === 'encore') sets.encore.push(entry);
+    else sets.other.push(entry);
   }
 
   Object.keys(sets).forEach((key) => {
@@ -113,9 +132,9 @@ export default function SetlistPage({ show, allDates, prevShow, nextShow, backgr
   const visibleSetGroups = setGroups.filter((group) => group.entries.length > 0);
 
   const noteEntry = show.entries.find(
-    (entry) => entry.rawData?.setlistnotes?.trim()
+    (entry) => entry.rawdata?.setlistnotes?.trim()
   );
-  const showNotes = noteEntry?.rawData.setlistnotes
+  const showNotes = noteEntry?.rawdata.setlistnotes
     ?.replace(/<[^>]+>/g, '')
     ?.replace(/&nbsp;/g, ' ')
     ?.replace(/&amp;/g, '&')

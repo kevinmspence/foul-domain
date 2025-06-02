@@ -1,60 +1,58 @@
-import prisma from '@/lib/prisma';
-import { getCached, setCached, getOrCacheForever } from '@/lib/cache';
+import sql from '@/lib/sql';
+import ScrollWrapper from '@/components/ScrollWrapper';
+import Link from 'next/link';
 
-const formatDate = (date) => new Date(date).toISOString().split('T')[0];
+export async function getServerSideProps(context) {
+  const { slug } = context.params;
 
-const collections = {
-  'island-tour': {
-    name: 'Island Tour',
-    dates: ['1998-04-02', '1998-04-03', '1998-04-04', '1998-04-05'],
-  },
-  halloween: {
-    name: 'Halloween Shows',
-    match: (dateStr) => {
-      const [_, month, day] = dateStr.split('-').map(Number);
-      return month === 10 && day === 31;
-    },
-  },
-  nye: {
-    name: 'New Year’s Runs',
-    match: (dateStr) => {
-      const [_, month, day] = dateStr.split('-').map(Number);
-      return month === 12 && [31].includes(day);
-    },
-  },
-};
+  // ✅ Query the database using Neon SQL
+  const shows = await sql`
+    SELECT id, showdate, venue, city, state
+    FROM "Show"
+    ORDER BY showdate ASC
+  `;
 
-export default async function handler(req, res) {
-  const { slug } = req.query;
-  const collection = collections[slug];
-
-  if (!collection) {
-    return res.status(404).json({ error: 'Collection not found' });
-  }
-
-  const allShows = await getOrCacheForever('all-shows', async () => {
-    console.log('🟡 Cache miss: fetching all shows from DB');
-    return await prisma.show.findMany({ orderBy: { showDate: 'asc' } });
-  });
-
-  console.log('🟢 Cache hit: using all-shows from memory');
-
-  let filteredShows = [];
-
-  if (collection.dates) {
-    filteredShows = allShows.filter((show) =>
-      collection.dates.includes(formatDate(show.showDate))
-    );
-  } else if (collection.match) {
-    filteredShows = allShows.filter((show) =>
-      collection.match(formatDate(show.showDate), show)
-    );
-  }
-
-  const result = filteredShows.map((show) => ({
+  // ✅ Do NOT use 'rows' — use the variable directly
+  const allShows = shows.map((show) => ({
     ...show,
-    showDate: formatDate(show.showDate),
+    showDate: new Date(show.showdate).toISOString().split('T')[0],
   }));
 
-  return res.status(200).json(result);
+  return { props: { slug, shows: allShows } };
+}
+
+export default function CollectionPage({ slug, shows }) {
+  return (
+    <div
+      className="min-h-screen overflow-x-hidden text-yellow-100 font-ticket px-4 sm:px-6 py-12"
+      style={{
+        backgroundImage: "url('/backgrounds/library.png')",
+        backgroundColor: '#0d0d0d',
+        backgroundSize: 'cover',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'bottom right',
+      }}
+    >
+      <div className="max-w-4xl mx-auto">
+        <ScrollWrapper size="large">
+          <h1 className="text-4xl sm:text-5xl font-bold text-yellow-100 drop-shadow-md text-center mb-6 capitalize">
+            {slug.replace(/-/g, ' ')}
+          </h1>
+
+          <div className="space-y-4 text-center">
+            {shows.map((show) => (
+              <Link
+                key={show.id}
+                href={`/shows/${show.showDate}`}
+                className="block bg-parchment text-black font-bold text-sm px-4 py-3 rounded-md border border-edge shadow-inset-subtle hover:brightness-105 transition"
+              >
+                {show.showDate} — {show.venue}, {show.city}, {show.state}
+              </Link>
+            ))}
+          </div>
+        </ScrollWrapper>
+      </div>
+    </div>
+  );
 }

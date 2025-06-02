@@ -1,23 +1,26 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import prisma from '@/lib/prisma';
+import sql from '@/lib/sql';
 import { getCollectionShows, collectionTitles } from '@/lib/collections';
 
 export async function getServerSideProps(context) {
   const { slug } = context.params;
 
-  const allShows = await prisma.show.findMany({
-    orderBy: {
-      showDate: 'asc',
-    },
-  });
+  const shows = await sql`
+    SELECT * FROM "Show" ORDER BY "showdate" ASC;
+  `;
 
-  const formattedShows = allShows.map((show) => ({
-    ...show,
-    showDate: show.showDate.toISOString(),
+  const allShows = shows.map((show) => ({
+    id: show.id ?? null,
+    venue: show.venue ?? '',
+    city: show.city ?? '',
+    state: show.state ?? '',
+    showDate: show.showdate
+      ? new Date(show.showdate).toISOString().split('T')[0]
+      : '',
   }));
 
-  const shows = getCollectionShows(slug, formattedShows);
+  const showsForCollection = getCollectionShows(slug, allShows);
   const title = collectionTitles[slug] || 'Collection';
   const description = `Explore ${title} from Phish's history — a curated set of memorable performances.`;
   const host = context.req.headers.host || 'fouldomain.com';
@@ -28,7 +31,7 @@ export async function getServerSideProps(context) {
     props: {
       slug,
       title,
-      shows,
+      shows: showsForCollection,
       description,
       canonicalUrl,
     },
@@ -64,10 +67,10 @@ export default function CollectionPage({ slug, title, shows, description, canoni
             <div className="overflow-x-auto rounded-xl">
               <table className="w-[90%] max-w-[825px] mx-auto table-fixed border-collapse text-base sm:text-lg">
                 <colgroup>
-                  <col style={{ width: "18%" }} />
-                  <col style={{ width: "42%" }} />
-                  <col style={{ width: "25%" }} />
-                  <col style={{ width: "15%" }} />
+                  <col style={{ width: '18%' }} />
+                  <col style={{ width: '42%' }} />
+                  <col style={{ width: '25%' }} />
+                  <col style={{ width: '15%' }} />
                 </colgroup>
                 <thead className="bg-gradient-to-b from-yellow-800 to-yellow-900 text-yellow-100 uppercase shadow-inner shadow-yellow-950">
                   <tr>
@@ -78,36 +81,32 @@ export default function CollectionPage({ slug, title, shows, description, canoni
                   </tr>
                 </thead>
                 <tbody>
-                  {shows.map((show, idx) => {
-                    const date = show.showDate?.split("T")[0];
-
-                    return (
-                      <tr
-                        key={show.id}
-                        className={`${
-                          idx % 2 === 0 ? "bg-yellow-950/10" : "bg-yellow-900/5"
-                        } hover:bg-yellow-800/40 hover:text-yellow-50 transition-all duration-150`}
-                      >
-                        <td className="py-2 px-4 border border-yellow-700 shadow-inner shadow-yellow-900">
-                          <Link
-                            href={`/shows/${date}`}
-                            className="text-sky-300 hover:text-sky-100 hover:underline"
-                          >
-                            {date}
-                          </Link>
-                        </td>
-                        <td className="py-2 px-4 border border-yellow-700 shadow-inner shadow-yellow-900">
-                          {show.venue}
-                        </td>
-                        <td className="py-2 px-4 border border-yellow-700 shadow-inner shadow-yellow-900">
-                          {show.city}
-                        </td>
-                        <td className="py-2 px-4 border border-yellow-700 shadow-inner shadow-yellow-900">
-                          {show.state}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {shows.map((show, idx) => (
+                    <tr
+                      key={show.id || `${show.showDate}-${idx}`}
+                      className={`${
+                        idx % 2 === 0 ? 'bg-yellow-950/10' : 'bg-yellow-900/5'
+                      } hover:bg-yellow-800/40 hover:text-yellow-50 transition-all duration-150`}
+                    >
+                      <td className="py-2 px-4 border border-yellow-700 shadow-inner shadow-yellow-900">
+                        <Link
+                          href={`/shows/${show.showDate}`}
+                          className="text-sky-300 hover:text-sky-100 hover:underline"
+                        >
+                          {show.showDate}
+                        </Link>
+                      </td>
+                      <td className="py-2 px-4 border border-yellow-700 shadow-inner shadow-yellow-900">
+                        {show.venue}
+                      </td>
+                      <td className="py-2 px-4 border border-yellow-700 shadow-inner shadow-yellow-900">
+                        {show.city}
+                      </td>
+                      <td className="py-2 px-4 border border-yellow-700 shadow-inner shadow-yellow-900">
+                        {show.state}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

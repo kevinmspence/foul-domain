@@ -1,12 +1,22 @@
 @import "tailwindcss";
 
-
 /* globals.css */
 .font-handwritten {
   font-family: 'Rock Salt', cursive !important;
 }
 
-
 body {
   @apply font-sans;
+  margin: 0;            /* Remove default browser margin */
+  padding: 0;           /* Ensure no top padding exists */
+  background-color: black; /* Fallback background color */
 }
+
+
+html, body, #__next {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: transparent;
+}
+

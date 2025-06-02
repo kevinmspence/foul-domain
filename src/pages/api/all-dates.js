@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import sql from '@/lib/sql';
 import { getOrCacheForever } from '@/lib/cache';
 
 export default async function handler(req, res) {
@@ -7,10 +7,14 @@ export default async function handler(req, res) {
   try {
     const dates = await getOrCacheForever(cacheKey, async () => {
       console.log('🟡 Cache miss: fetching all show dates from DB');
-      const shows = await prisma.show.findMany({
-        select: { showDate: true },
-      });
-      return shows.map((show) => show.showDate.toISOString().split('T')[0]);
+
+      const { rows } = await sql`
+        SELECT "showdate" FROM "Show";
+      `;
+
+      return rows.map((row) =>
+        new Date(row.showdate).toISOString().split('T')[0]
+      );
     });
 
     console.log('🟢 Cache hit: using all-show-dates from memory');

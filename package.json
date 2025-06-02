@@ -8,16 +8,17 @@
     "start": "next start",
     "lint": "next lint",
     "pages:build": "npx @cloudflare/next-on-pages",
-    "pages:deploy": "npx wrangler deploy .vercel/output/static --config wrangler.toml"
+    "pages:deploy": "npx wrangler deploy .vercel/output/static --config wrangler.toml",
+    "export:data": "node scripts/export.js",
+    "seed": "node scripts/seed.js"
   },
   "dependencies": {
-    "@prisma/client": "^6.8.2",
-    "@prisma/extension-accelerate": "^2.0.1",
+    "@neondatabase/serverless": "^1.0.0",
     "express": "^5.1.0",
     "firebase-admin": "^13.4.0",
     "firebase-functions": "^6.3.2",
     "next": "^15.3.2",
-    "prisma": "^6.8.2",
+    "pg": "^8.16.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sharp": "^0.34.2",

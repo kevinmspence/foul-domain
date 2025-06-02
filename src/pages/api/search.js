@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import sql from '@/lib/sql';
 import { getCached, setCached } from '@/lib/cache';
 
 export default async function handler(req, res) {
@@ -23,17 +23,12 @@ export default async function handler(req, res) {
 
   try {
     // SONG RESULTS
-    const songs = await prisma.setlistEntry.findMany({
-      where: {
-        song: {
-          contains: rawQuery,
-          mode: 'insensitive',
-        },
-      },
-      select: { song: true },
-      distinct: ['song'],
-      take: 25,
-    });
+    const { rows: songs } = await sql`
+      SELECT DISTINCT song
+      FROM "SetlistEntry"
+      WHERE LOWER(song) LIKE ${'%' + rawQuery + '%'}
+      LIMIT 25;
+    `;
 
     const songResults = songs
       .map((s) => ({
@@ -47,21 +42,15 @@ export default async function handler(req, res) {
       .slice(0, 10);
 
     // SHOW RESULTS
-    const allShows = await prisma.show.findMany({
-      select: {
-        id: true,
-        venue: true,
-        city: true,
-        state: true,
-        showDate: true,
-      },
-    });
+    const { rows: allShows } = await sql`
+      SELECT id, venue, city, state, "showdate"
+      FROM "Show";
+    `;
 
     const showResults = allShows
       .map((s) => {
-        const isoDate = s.showDate.toISOString().split('T')[0]; // 'yyyy-mm-dd'
+        const isoDate = new Date(s.showdate).toISOString().split('T')[0];
         const [year, month, day] = isoDate.split('-');
-
         const yearShort = year.slice(-2);
 
         const fields = {
@@ -109,7 +98,6 @@ export default async function handler(req, res) {
       .map((s) => {
         const formattedDate = `${s.month}/${s.day}/${s.year}`;
         const slug = `${s.year}-${s.month}-${s.day}`;
-
         return {
           id: `show-${s.id}`,
           label: `${s.venue} – ${s.city}, ${s.state} (${formattedDate})`,
