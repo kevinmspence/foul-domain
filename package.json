@@ -6,6 +6,7 @@
     "dev": "next dev",
     "start": "next start",
     "lint": "next lint",
+    "build": "next build",
     "pages:deploy": "npx wrangler deploy .vercel/output/static --config wrangler.toml",
     "export:data": "node scripts/export.js",
     "seed": "node scripts/seed.js"
