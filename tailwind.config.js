@@ -3,12 +3,12 @@ module.exports = {
   content: [
     './pages/**/*.{js,jsx}',
     './components/**/*.{js,jsx}',
-    './src/**/*.{js,jsx}',
+    './styles/**/*.{css}',
   ],
   theme: {
     extend: {
       fontFamily: {
-
+        handwritten: ['Rock Salt', 'cursive'],
       },
     },
   },
