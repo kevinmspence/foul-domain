@@ -3,8 +3,6 @@ import SetScroll from '@/components/SetScroll';
 import ShowNotes from '@/components/ShowNotes';
 import Image from 'next/image';
 import Link from 'next/link';
-import fs from 'fs';
-import path from 'path';
 import sql from '@/lib/sql';
 
 export async function getServerSideProps(context) {
@@ -21,7 +19,6 @@ export async function getServerSideProps(context) {
   `;
 
   const showRows = Array.isArray(result) ? result : result?.rows || [];
-
   if (!Array.isArray(showRows) || !showRows.length) return { notFound: true };
 
   const show = {
@@ -47,19 +44,11 @@ export async function getServerSideProps(context) {
   const prevShow = allDates[currentIndex - 1] || null;
   const nextShow = allDates[currentIndex + 1] || null;
 
-  const publicDir = path.join(process.cwd(), 'public');
+  // Background image fallback logic (no fs)
+  const venueSlug = show.venue?.toLowerCase().replace(/[^a-z0-9]/g, '-');
   const showImage = `/shows/${showDateStr}.png`;
-  const showImagePath = path.join(publicDir, showImage);
-
-  let backgroundImage = '/default2.png';
-  if (fs.existsSync(showImagePath)) {
-    backgroundImage = showImage;
-  } else {
-    const venueSlug = show.venue?.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    const venueImage = `/venues/${venueSlug}.png`;
-    const venueImagePath = path.join(publicDir, venueImage);
-    if (fs.existsSync(venueImagePath)) backgroundImage = venueImage;
-  }
+  const venueImage = `/venues/${venueSlug}.png`;
+  const backgroundImage = showImage || venueImage || '/default2.png';
 
   return {
     props: {
@@ -86,8 +75,7 @@ export default function SetlistPage({ show, allDates, prevShow, nextShow, backgr
     if (typeof raw === 'string') {
       try {
         parsed = JSON.parse(raw);
-      } catch (e) {
-        console.warn('Invalid JSON in rawdata:', raw);
+      } catch {
         parsed = {};
       }
     } else if (typeof raw === 'object' && raw !== null) {
@@ -104,9 +92,7 @@ export default function SetlistPage({ show, allDates, prevShow, nextShow, backgr
     else sets.other.push(entry);
   }
 
-  Object.keys(sets).forEach((key) => {
-    sets[key].sort((a, b) => a.sequence - b.sequence);
-  });
+  Object.values(sets).forEach((arr) => arr.sort((a, b) => a.sequence - b.sequence));
 
   if (sets.encore.length > 0) {
     const taggedEncore = sets.encore.map((entry, i) => ({
@@ -127,9 +113,7 @@ export default function SetlistPage({ show, allDates, prevShow, nextShow, backgr
     { title: 'Set 2', entries: sets[2] },
     { title: 'Set 3', entries: sets[3] },
     { title: 'Other', entries: sets.other },
-  ];
-
-  const visibleSetGroups = setGroups.filter((group) => group.entries.length > 0);
+  ].filter((group) => group.entries.length > 0);
 
   const noteEntry = show.entries.find(
     (entry) => entry.rawdata?.setlistnotes?.trim()
@@ -197,13 +181,13 @@ export default function SetlistPage({ show, allDates, prevShow, nextShow, backgr
         </div>
 
         <div className="w-full flex flex-col sm:flex-row sm:justify-center sm:gap-4 sm:space-x-4">
-          {visibleSetGroups.map(({ title, entries }, idx) => (
+          {setGroups.map(({ title, entries }, idx) => (
             <div key={title} className="flex-1 max-w-[600px] sm:px-2">
               <SetScroll
                 title={title}
                 entries={entries}
                 index={idx}
-                total={visibleSetGroups.length}
+                total={setGroups.length}
               />
             </div>
           ))}
