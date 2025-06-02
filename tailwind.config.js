@@ -3,14 +3,11 @@ module.exports = {
   content: [
     './pages/**/*.{js,jsx}',
     './components/**/*.{js,jsx}',
-    './styles/**/*.{css}',
+    './src/**/*.{js,jsx}',
+    './styles/**/*.css', // ✅ corrected glob pattern
   ],
   theme: {
-    extend: {
-      fontFamily: {
-        handwritten: ['Rock Salt', 'cursive'],
-      },
-    },
+    extend: {},
   },
   plugins: [],
 };
