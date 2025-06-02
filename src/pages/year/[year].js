@@ -145,7 +145,7 @@ export default function YearPage() {
                   </thead>
                   <tbody>
                     {visibleShows.map((show) => {
-                      const date = show.showDate?.split('T')[0];
+                      const date = new Date(show.showDate).toISOString().split('T')[0];
                       return (
                         <tr
                           key={show.id}

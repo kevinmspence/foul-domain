@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   const { q } = req.query;
 
   if (!q || q.length < 2) {
-    return res.status(400).json([]);
+    return res.status(200).json([]); // ✅ Always return an array
   }
 
   const rawQuery = q.toLowerCase().trim();
@@ -23,12 +23,13 @@ export default async function handler(req, res) {
 
   try {
     // SONG RESULTS
-    const { rows: songs } = await sql`
+    const result1 = await sql`
       SELECT DISTINCT song
       FROM "SetlistEntry"
       WHERE LOWER(song) LIKE ${'%' + rawQuery + '%'}
       LIMIT 25;
     `;
+    const songs = Array.isArray(result1) ? result1 : result1?.rows || [];
 
     const songResults = songs
       .map((s) => ({
@@ -42,10 +43,11 @@ export default async function handler(req, res) {
       .slice(0, 10);
 
     // SHOW RESULTS
-    const { rows: allShows } = await sql`
-      SELECT id, venue, city, state, "showdate"
+    const result2 = await sql`
+      SELECT "showid", venue, city, state, "showdate"
       FROM "Show";
     `;
+    const allShows = Array.isArray(result2) ? result2 : result2?.rows || [];
 
     const showResults = allShows
       .map((s) => {
@@ -80,7 +82,7 @@ export default async function handler(req, res) {
 
         return allTokensMatched
           ? {
-              id: s.id,
+              showid: s.showid,
               venue: s.venue,
               city: s.city,
               state: s.state,
@@ -99,7 +101,7 @@ export default async function handler(req, res) {
         const formattedDate = `${s.month}/${s.day}/${s.year}`;
         const slug = `${s.year}-${s.month}-${s.day}`;
         return {
-          id: `show-${s.id}`,
+          id: `show-${s.showid}`,
           label: `${s.venue} – ${s.city}, ${s.state} (${formattedDate})`,
           type: 'show',
           slug,
@@ -113,6 +115,6 @@ export default async function handler(req, res) {
     return res.status(200).json(results);
   } catch (err) {
     console.error('Search API error:', err);
-    res.status(500).json({ error: 'Failed to search' });
+    return res.status(500).json({ error: 'Failed to search' });
   }
 }

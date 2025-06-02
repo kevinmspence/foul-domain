@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import sql from '@/lib/sql';
 import ScrollWrapper from '@/components/ScrollWrapper';
-import Image from 'next/image';
 
 function sanitizeForFilename(name) {
   return name
@@ -43,25 +42,56 @@ export async function getServerSideProps(context) {
   const protocol = context.req.headers['x-forwarded-proto'] || 'https';
   const canonicalUrl = `${protocol}://${host}/songs/${slug}`;
 
-  const backgroundTop = '/scroll-top.png';
-  const backgroundMiddle = `/song-backgrounds/${sanitizeForFilename(songName)}.webp`;
-  const backgroundBottom = '/scroll-bottom.png';
-
   return {
     props: {
       entries: serializableEntries,
       songName,
       canonicalUrl,
-      backgroundTop,
-      backgroundMiddle,
-      backgroundBottom,
     },
   };
 }
 
-export default function SongPage({ entries, songName, canonicalUrl, backgroundTop, backgroundMiddle, backgroundBottom }) {
+export default function SongPage({ entries, songName, canonicalUrl }) {
   const [sortBy, setSortBy] = useState('date');
   const [sortAsc, setSortAsc] = useState(false);
+  const [backgroundMiddle, setBackgroundMiddle] = useState(null);
+
+  const backgroundTop = '/scroll-top.png';
+  const backgroundBottom = '/scroll-bottom.png';
+
+  useEffect(() => {
+    const cached = sessionStorage.getItem(`bg-${songName}`);
+    if (cached) {
+      setBackgroundMiddle(cached);
+      return;
+    }
+
+    const slug = sanitizeForFilename(songName);
+    const testImage = (src) =>
+      new Promise((resolve) => {
+        const img = new window.Image();
+        img.src = src;
+        img.onload = () => resolve(src);
+        img.onerror = () => resolve(null);
+      });
+
+    const tryImages = async () => {
+      const custom = `/song-backgrounds/${slug}.webp`;
+      const found = (await testImage(custom)) || '/song-backgrounds/default.png';
+      sessionStorage.setItem(`bg-${songName}`, found);
+      setBackgroundMiddle(found);
+    };
+
+    tryImages();
+  }, [songName]);
+
+  if (!backgroundMiddle) {
+    return (
+      <div className="min-h-screen bg-black text-yellow-100 font-ticket flex items-center justify-center">
+        <p className="text-xl animate-pulse">Loading background...</p>
+      </div>
+    );
+  }
 
   const sortedEntries = [...entries].sort((a, b) => {
     const dir = sortAsc ? 1 : -1;
@@ -109,17 +139,32 @@ export default function SongPage({ entries, songName, canonicalUrl, backgroundTo
         </div>
 
         <div className="flex justify-center gap-6 mb-6 text-yellow-300 text-lg font-bold">
-          <div className="bg-yellow-900/20 px-4 py-2 rounded border border-yellow-500">Times Played: {entries.length}</div>
-          <div className="bg-yellow-900/20 px-4 py-2 rounded border border-yellow-500">First Played: {firstPlayed ? new Date(firstPlayed).toLocaleDateString() : '—'}</div>
-          <div className="bg-yellow-900/20 px-4 py-2 rounded border border-yellow-500">Last Played: {lastPlayed ? new Date(lastPlayed).toLocaleDateString() : '—'}</div>
+          <div className="bg-yellow-900/20 px-4 py-2 rounded border border-yellow-500">
+            Times Played: {entries.length}
+          </div>
+          <div className="bg-yellow-900/20 px-4 py-2 rounded border border-yellow-500">
+            First Played: {firstPlayed ? new Date(firstPlayed).toLocaleDateString() : '—'}
+          </div>
+          <div className="bg-yellow-900/20 px-4 py-2 rounded border border-yellow-500">
+            Last Played: {lastPlayed ? new Date(lastPlayed).toLocaleDateString() : '—'}
+          </div>
         </div>
 
         {entries.length === 0 ? (
           <p className="text-center text-lg">No performances found for this song.</p>
         ) : (
           <div className="max-w-[825px] mx-auto">
-            <ScrollWrapper backgroundTop={backgroundTop} backgroundMiddle={backgroundMiddle} backgroundBottom={backgroundBottom}>
-              <div className="text-center text-yellow-200 text-xl tracking-wide mt-6 mb-4" style={{ fontFamily: 'Rock Salt, cursive' }}>Every time played</div>
+            <ScrollWrapper
+              backgroundTop={backgroundTop}
+              backgroundMiddle={backgroundMiddle}
+              backgroundBottom={backgroundBottom}
+            >
+              <div
+                className="text-center text-yellow-200 text-xl tracking-wide mt-6 mb-4"
+                style={{ fontFamily: 'Rock Salt, cursive' }}
+              >
+                Every time played
+              </div>
               <div className="flex justify-center overflow-x-auto">
                 <table className="w-[85%] max-w-[640px] mx-auto text-left border-collapse text-yellow-100">
                   <thead>
@@ -131,19 +176,24 @@ export default function SongPage({ entries, songName, canonicalUrl, backgroundTo
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedEntries.map((entry, index) => (
-                      <tr
-                        key={index}
-                        className={`hover:bg-yellow-300 hover:text-black transition-all duration-150 ${index % 2 === 0 ? 'bg-yellow-950/10' : 'bg-yellow-900/5'}`}
-                      >
-                        <td className="p-2 border border-yellow-700 underline">
-                          <Link href={`/shows/${entry.show.showDate}`}>{new Date(entry.show.showDate).toLocaleDateString()}</Link>
-                        </td>
-                        <td className="p-2 border border-yellow-700">{entry.show.venue}</td>
-                        <td className="p-2 border border-yellow-700">{entry.show.city}</td>
-                        <td className="p-2 border border-yellow-700">{entry.show.state}</td>
-                      </tr>
-                    ))}
+                    {sortedEntries.map((entry, index) => {
+                      const showUrl = new Date(entry.show.showDate).toISOString().split('T')[0];
+                      return (
+                        <tr
+                          key={index}
+                          className={`hover:bg-yellow-300 hover:text-black transition-all duration-150 ${index % 2 === 0 ? 'bg-yellow-950/10' : 'bg-yellow-900/5'}`}
+                        >
+                          <td className="p-2 border border-yellow-700 underline">
+                            <Link href={`/shows/${showUrl}`}>
+                              {new Date(entry.show.showDate).toLocaleDateString()}
+                            </Link>
+                          </td>
+                          <td className="p-2 border border-yellow-700">{entry.show.venue}</td>
+                          <td className="p-2 border border-yellow-700">{entry.show.city}</td>
+                          <td className="p-2 border border-yellow-700">{entry.show.state}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

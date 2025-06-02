@@ -4,6 +4,7 @@ import ShowNotes from '@/components/ShowNotes';
 import Image from 'next/image';
 import Link from 'next/link';
 import sql from '@/lib/sql';
+import { useEffect, useState } from 'react';
 
 export async function getServerSideProps(context) {
   const { showDate } = context.params;
@@ -44,11 +45,7 @@ export async function getServerSideProps(context) {
   const prevShow = allDates[currentIndex - 1] || null;
   const nextShow = allDates[currentIndex + 1] || null;
 
-  // Background image fallback logic (no fs)
   const venueSlug = show.venue?.toLowerCase().replace(/[^a-z0-9]/g, '-');
-  const showImage = `/shows/${showDateStr}.png`;
-  const venueImage = `/venues/${venueSlug}.png`;
-  const backgroundImage = showImage || venueImage || '/default2.png';
 
   return {
     props: {
@@ -60,12 +57,40 @@ export async function getServerSideProps(context) {
       allDates,
       prevShow,
       nextShow,
-      backgroundImage,
+      showImage: `/shows/${showDateStr}.png`,
+      venueImage: `/venues/${venueSlug}.png`,
     },
   };
 }
 
-export default function SetlistPage({ show, allDates, prevShow, nextShow, backgroundImage }) {
+export default function SetlistPage({ show, allDates, prevShow, nextShow, showImage, venueImage }) {
+  const [backgroundImage, setBackgroundImage] = useState('/venues/default.png');
+
+  useEffect(() => {
+    const cacheKey = `bgimg-${show.showDate}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) return setBackgroundImage(cached);
+
+    const testImage = (src) =>
+      new Promise((resolve) => {
+        if (typeof window === 'undefined') return resolve(null);
+        const img = new window.Image();
+        img.src = src;
+        img.onload = () => resolve(src);
+        img.onerror = () => resolve(null);
+      });
+
+    (async () => {
+      const found =
+        (await testImage(showImage)) ||
+        (await testImage(venueImage)) ||
+        '/venues/default.png';
+
+      sessionStorage.setItem(cacheKey, found);
+      setBackgroundImage(found);
+    })();
+  }, [show.showDate, showImage, venueImage]);
+
   const sets = { 1: [], 2: [], 3: [], encore: [], other: [] };
 
   for (const entry of show.entries) {
