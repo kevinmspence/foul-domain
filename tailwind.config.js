@@ -1,13 +1,15 @@
-/** @type {import('tailwindcss').Config} */
+// tailwind.config.js
 module.exports = {
   content: [
     './pages/**/*.{js,jsx}',
     './components/**/*.{js,jsx}',
     './src/**/*.{js,jsx}',
-    './styles/**/*.css', // ✅ corrected glob pattern
+    './styles/**/*.css', // ✅ corrected warning
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {},
+    },
   },
   plugins: [],
 };
