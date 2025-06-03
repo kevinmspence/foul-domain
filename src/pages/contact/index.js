@@ -56,7 +56,7 @@ export default function ContactPage() {
           {!sent ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <h1 className="text-2xl font-bold mb-2">Contact Me!</h1>
-              <p>I'm Kevin. This is my site. Say 'hi'</p>
+              <p>I&rsquo;m Kevin. This is my site. Say &lsquo;hi&rsquo;.</p>
 
               <input
                 name="name"
@@ -103,7 +103,7 @@ export default function ContactPage() {
             </form>
           ) : (
             <div className="text-green-400 text-xl font-semibold pt-4 pb-8">
-              🎉 Thanks for reaching out! We'll be in touch soon.
+              🎉 Thanks for reaching out! We&rsquo;ll be in touch soon.
             </div>
           )}
 
