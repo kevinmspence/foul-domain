@@ -15,8 +15,8 @@ function sanitizeForFilename(name) {
 
 function slugToSong(slug) {
   return slug
-    .replace(/-/g, ' ')                  // hyphens → spaces
-    .replace(/\bac\b/gi, 'AC')           // optional: fix known cases
+    .replace(/-/g, ' ')
+    .replace(/\bac\b/gi, 'AC')
     .replace(/\bdc\b/gi, 'DC')
     .trim();
 }
@@ -162,7 +162,7 @@ export default function SongPage({ entries, songName, canonicalUrl }) {
         {entries.length === 0 ? (
           <p className="text-center text-lg">No performances found for this song.</p>
         ) : (
-          <div className="max-w-[825px] mx-auto">
+          <div className="w-full px-4 sm:px-0 max-w-[95vw] sm:max-w-[860px] mx-auto">
             <ScrollWrapper
               backgroundTop={backgroundTop}
               backgroundMiddle={backgroundMiddle}
