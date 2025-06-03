@@ -108,17 +108,19 @@ export default function YearPage() {
 
           <div className="w-full max-w-5xl text-center">
             <img src="/scroll-top.png" alt="Scroll top" className="w-full" />
+
+            {/* 📌 FIXED WIDTH */}
             <div
-              className="bg-repeat-y bg-center px-4 py-10 text-yellow-100 w-full max-w-[300px] sm:max-w-[825px] mx-auto"
+              className="bg-repeat-y bg-center px-4 py-10 text-yellow-100 mx-auto w-full max-w-[825px]"
               style={{ backgroundImage: `url(/scroll-middle.png)` }}
             >
               <div className="overflow-x-auto rounded-xl">
-                <table className="w-full max-w-[300px] sm:max-w-[825px] mx-auto table-fixed border-collapse text-sm sm:text-lg">
+                <table className="w-full table-fixed border-collapse text-base sm:text-lg">
                   <colgroup>
-                    <col className="w-[45%] sm:w-[18%]" />
-                    <col className="w-[55%] sm:w-[42%]" />
-                    <col className="hidden sm:table-column sm:w-[25%]" />
-                    <col className="hidden sm:table-column sm:w-[15%]" />
+                    <col style={{ width: '18%' }} />
+                    <col style={{ width: '42%' }} />
+                    <col style={{ width: '25%' }} />
+                    <col style={{ width: '15%' }} />
                   </colgroup>
                   <thead className="bg-gradient-to-b from-yellow-800 to-yellow-900 text-yellow-100 uppercase shadow-inner shadow-yellow-950">
                     <tr>
@@ -210,6 +212,7 @@ export default function YearPage() {
                 Every show a chapter, every jam a paragraph.
               </p>
             </div>
+
             <img src="/scroll-bottom.png" alt="Scroll bottom" className="w-full" />
           </div>
         </div>
