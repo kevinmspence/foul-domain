@@ -13,15 +13,24 @@ function sanitizeForFilename(name) {
     .replace(/\s+/g, '-');
 }
 
+function slugToSong(slug) {
+  return slug
+    .replace(/-/g, ' ')                  // hyphens → spaces
+    .replace(/\bac\b/gi, 'AC')           // optional: fix known cases
+    .replace(/\bdc\b/gi, 'DC')
+    .trim();
+}
+
 export async function getServerSideProps(context) {
   const slug = context.params.slug;
-  const songName = decodeURIComponent(slug).replace(/-/g, ' ').toLowerCase();
+  const songName = slugToSong(slug).toLowerCase();
+  const normalizedSlug = songName.replace(/[^a-z0-9]/gi, '');
 
   const result = await sql`
     SELECT se.*, s."showdate", s.venue, s.city, s.state
     FROM "SetlistEntry" se
     JOIN "Show" s ON se."showid" = s."showid"
-    WHERE LOWER(se.song) = ${songName}
+    WHERE REPLACE(REPLACE(REPLACE(LOWER(se.song), '/', ''), ' ', ''), '-', '') = ${normalizedSlug}
     ORDER BY s."showdate" DESC;
   `;
 

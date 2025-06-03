@@ -1,9 +1,23 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import Head from 'next/head';
+import { useEffect, useState } from 'react';
 import SearchBox from '@/components/SearchBox';
 
 export default function Home() {
+  const [bgImage, setBgImage] = useState('/gamehendge.webp');
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const isMobile = window.innerWidth <= 768;
+      setBgImage(isMobile ? '/gamehendge-mobile.webp' : '/gamehendge.webp');
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
   return (
     <>
       <Head>
@@ -19,12 +33,11 @@ export default function Home() {
         />
         <meta property="og:type" content="website" />
         <link rel="canonical" href="https://fouldomain.com/" />
-        <link rel="preload" as="image" href="/gamehendge.webp" />
       </Head>
 
       <div className="w-screen h-screen relative overflow-hidden">
         <Image
-          src="/gamehendge.webp"
+          src={bgImage}
           alt=""
           fill
           priority
@@ -34,7 +47,6 @@ export default function Home() {
         {/* Centered content container */}
         <div className="absolute inset-0 flex items-center justify-center sm:justify-start px-4 sm:px-10 md:px-20 lg:px-32 z-10">
           <div className="flex flex-col items-center w-full max-w-[480px] text-center animate-fadeInUp">
-            
             {/* Logo */}
             <Image
               src="/foul-domain.webp"
@@ -66,7 +78,8 @@ export default function Home() {
                 alt="Browse the Archives"
                 width={285}
                 height={80}
-                className="transition-transform duration-200 w-full h-auto"
+                priority
+                className="w-full h-auto transition-transform duration-200"
               />
             </Link>
           </div>

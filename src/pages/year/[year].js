@@ -21,7 +21,6 @@ export default function YearPage() {
       try {
         const res = await axios.get(`/api/shows?year=${year}`);
         setShows(res.data);
-        console.log("🔄 Shows returned from API:", res.data);
       } catch (err) {
         console.error('Error fetching shows', err);
       }
@@ -60,9 +59,10 @@ export default function YearPage() {
     };
   }, [loadMore]);
 
-  const canonicalUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/year/${year}`
-    : `https://fouldomain.com/year/${year}`;
+  const canonicalUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/year/${year}`
+      : `https://fouldomain.com/year/${year}`;
 
   return (
     <>
@@ -93,14 +93,12 @@ export default function YearPage() {
         }}
       >
         <div className="min-h-screen px-4 pb-20 pt-8 flex flex-col items-center font-ticket text-yellow-100">
-          {/* PHISH Banner - Half Size */}
           <img
             src="/phish-banner.png"
             alt="Phish Banner"
             className="w-full max-w-2xl mx-auto mb-6"
           />
 
-          {/* Year Title */}
           <h1 className="text-6xl sm:text-7xl font-bold text-yellow-100 drop-shadow-md text-center mb-4">
             {year}
           </h1>
@@ -108,39 +106,70 @@ export default function YearPage() {
             Each show from this year — unrolled below.
           </p>
 
-          {/* Scroll Content */}
           <div className="w-full max-w-5xl text-center">
             <img src="/scroll-top.png" alt="Scroll top" className="w-full" />
             <div
-              className="bg-repeat-y bg-center px-4 py-10 text-yellow-100"
+              className="bg-repeat-y bg-center px-4 py-10 text-yellow-100 w-full max-w-[300px] sm:max-w-[825px] mx-auto"
               style={{ backgroundImage: `url(/scroll-middle.png)` }}
             >
               <div className="overflow-x-auto rounded-xl">
-                <table className="w-[90%] max-w-[825px] mx-auto table-fixed border-collapse text-base sm:text-lg">
+                <table className="w-full max-w-[300px] sm:max-w-[825px] mx-auto table-fixed border-collapse text-sm sm:text-lg">
                   <colgroup>
-                    <col style={{ width: '18%' }} />
-                    <col style={{ width: '42%' }} />
-                    <col style={{ width: '25%' }} />
-                    <col style={{ width: '15%' }} />
+                    <col className="w-[45%] sm:w-[18%]" />
+                    <col className="w-[55%] sm:w-[42%]" />
+                    <col className="hidden sm:table-column sm:w-[25%]" />
+                    <col className="hidden sm:table-column sm:w-[15%]" />
                   </colgroup>
                   <thead className="bg-gradient-to-b from-yellow-800 to-yellow-900 text-yellow-100 uppercase shadow-inner shadow-yellow-950">
                     <tr>
-                      {[{ label: 'Date', key: 'showDate' }, { label: 'Venue', key: 'venue' }, { label: 'City', key: 'city' }, { label: 'State', key: 'state' }].map(({ label, key }) => (
-                        <th
-                          key={key}
-                          className="py-3 px-4 border border-yellow-700 shadow-inner shadow-yellow-900 cursor-pointer"
-                          onClick={() => {
-                            if (sortField === key) {
-                              setSortAsc(!sortAsc);
-                            } else {
-                              setSortField(key);
-                              setSortAsc(true);
-                            }
-                          }}
-                        >
-                          {label} <span className="ml-1">{sortField === key ? (sortAsc ? '▲' : '▼') : '⋯'}</span>
-                        </th>
-                      ))}
+                      <th
+                        className="py-3 px-4 border border-yellow-700 shadow-inner shadow-yellow-900 cursor-pointer"
+                        onClick={() => {
+                          if (sortField === 'showDate') setSortAsc(!sortAsc);
+                          else {
+                            setSortField('showDate');
+                            setSortAsc(true);
+                          }
+                        }}
+                      >
+                        Date <span className="ml-1">{sortField === 'showDate' ? (sortAsc ? '▲' : '▼') : '⋯'}</span>
+                      </th>
+                      <th
+                        className="py-3 px-4 border border-yellow-700 shadow-inner shadow-yellow-900 cursor-pointer"
+                        onClick={() => {
+                          if (sortField === 'venue') setSortAsc(!sortAsc);
+                          else {
+                            setSortField('venue');
+                            setSortAsc(true);
+                          }
+                        }}
+                      >
+                        Venue <span className="ml-1">{sortField === 'venue' ? (sortAsc ? '▲' : '▼') : '⋯'}</span>
+                      </th>
+                      <th
+                        className="hidden sm:table-cell py-3 px-4 border border-yellow-700 shadow-inner shadow-yellow-900 cursor-pointer"
+                        onClick={() => {
+                          if (sortField === 'city') setSortAsc(!sortAsc);
+                          else {
+                            setSortField('city');
+                            setSortAsc(true);
+                          }
+                        }}
+                      >
+                        City <span className="ml-1">{sortField === 'city' ? (sortAsc ? '▲' : '▼') : '⋯'}</span>
+                      </th>
+                      <th
+                        className="hidden sm:table-cell py-3 px-4 border border-yellow-700 shadow-inner shadow-yellow-900 cursor-pointer"
+                        onClick={() => {
+                          if (sortField === 'state') setSortAsc(!sortAsc);
+                          else {
+                            setSortField('state');
+                            setSortAsc(true);
+                          }
+                        }}
+                      >
+                        State <span className="ml-1">{sortField === 'state' ? (sortAsc ? '▲' : '▼') : '⋯'}</span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -162,10 +191,10 @@ export default function YearPage() {
                           <td className="py-2 px-4 border border-yellow-700 shadow-inner shadow-yellow-900">
                             {show.venue}
                           </td>
-                          <td className="py-2 px-4 border border-yellow-700 shadow-inner shadow-yellow-900">
+                          <td className="hidden sm:table-cell py-2 px-4 border border-yellow-700 shadow-inner shadow-yellow-900">
                             {show.city}
                           </td>
-                          <td className="py-2 px-4 border border-yellow-700 shadow-inner shadow-yellow-900">
+                          <td className="hidden sm:table-cell py-2 px-4 border border-yellow-700 shadow-inner shadow-yellow-900">
                             {show.state}
                           </td>
                         </tr>
