@@ -81,7 +81,7 @@ export default function ContactPage() {
           />
 
           <ReCAPTCHA
-            sitekey="RECAPTCHA_SITE_KEY=6Ld11lQrAAAAANODLzNEh54ncM_fSwqbix4COsZN" // replace with your real site key
+            sitekey="6Ld11lQrAAAAANODLzNEh54ncM_fSwqbix4COsZN"
             size="invisible"
             ref={recaptchaRef}
           />
