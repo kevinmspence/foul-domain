@@ -6,16 +6,23 @@ const collectionLinks = [
   { name: "Halloween Shows", slug: "halloween" },
   { name: "New Year’s Shows", slug: "nye" },
   { name: "Island Tour", slug: "island-tour" },
-  { name: "A–Z Song Archive", slug: "songs" },
+  { name: "Baker's Dozen", slug: "bakers-dozen"},
+  { name: "Festivals", slug: "festivals" },
+  { name: "Gamehendge", slug:"gamehendge"}
 ];
 
 export async function getServerSideProps() {
   try {
     const result = await sql`
-      SELECT DISTINCT EXTRACT(YEAR FROM "showdate")::int AS year FROM "Show";
+      SELECT DISTINCT EXTRACT(YEAR FROM "showdate")::int AS year
+      FROM "Show"
+      WHERE "showdate" IS NOT NULL;
     `;
 
-    const years = result.map((r) => r.year).sort((a, b) => a - b);
+    const years = result
+      .map((r) => r.year)
+      .filter((y) => Number.isInteger(y)) // filter bad data
+      .sort((a, b) => a - b);
 
     console.log("📆 Final Parsed Years from SQL:", years);
 
@@ -39,17 +46,35 @@ export default function BookPage({ years }) {
         backgroundPosition: "bottom right",
       }}
     >
-      <div className="min-h-screen text-yellow-100 font-ticket px-4 sm:px-6 py-12">
+      <div className="px-4 sm:px-6 py-12">
         <div className="flex justify-center mb-6">
           <h1 className="text-6xl sm:text-7xl font-bold text-yellow-100 drop-shadow-md text-center">
-            The Helping Friendly Book
+            The Helping<br />
+            Friendly Book
           </h1>
         </div>
+<div className="flex justify-center items-center mb-6">
+  <h3
+    className="text-center"
+    style={{
+      fontFamily: "'Rock Salt', cursive",
+      textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
+      lineHeight: '1.75',
+    }}
+  >
+    Ancient secrets <br />
+    of eternal joy and <br />
+    never-ending splendor
+  </h3>
+</div>
 
-        <div className="w-full flex justify-center">
+
+        <div className="flex justify-center">
           <div className="w-[90vw] max-w-[825px]">
             <ScrollWrapper size="large">
-              <div className="text-center text-yellow-100 space-y-6 px-4">
+              <div className="text-center space-y-6 px-4">
+
+
                 <div className="px-4">
                   <h2 className="text-xl sm:text-2xl font-bold text-yellow-200 mb-2">
                     Special Collections
@@ -70,20 +95,26 @@ export default function BookPage({ years }) {
 
                 <div className="pt-8 px-4">
                   <h2 className="text-xl sm:text-2xl font-bold text-yellow-200 mb-2">
-                    Browse by Year
+                    Entries by Year
                   </h2>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    {years.map((year, index) => (
-                      <Link
-                        key={year}
-                        href={`/year/${year}`}
-                        className="bg-parchment text-black font-bold text-sm text-center px-5 py-2.5 min-w-[72px] rounded-md-lg border border-edge shadow-inset-subtle transition-all duration-200 hover:brightness-105"
-                        style={{ transitionDelay: `${index * 20}ms` }}
-                      >
-                        {year}
-                      </Link>
-                    ))}
-                  </div>
+                  {years.length > 0 ? (
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {years.map((year, index) => (
+                        <Link
+                          key={year}
+                          href={`/year/${year}`}
+                          className="bg-parchment text-black font-bold text-sm text-center px-5 py-2.5 min-w-[72px] rounded-md-lg border border-edge shadow-inset-subtle transition-all duration-200 hover:brightness-105"
+                          style={{ transitionDelay: `${index * 20}ms` }}
+                        >
+                          {year}
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm italic text-yellow-400">
+                      No years found. Please check your show data.
+                    </p>
+                  )}
                 </div>
 
                 <p className="italic text-xs text-yellow-300 pt-6">

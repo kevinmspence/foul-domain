@@ -7,7 +7,9 @@ import {
   House,
   Music,
   Mail,
-  Search
+  Search,
+  Sparkle,
+  BookOpen
 } from 'lucide-react';
 
 export default function Sidebar({ collapsed, toggleSidebar }) {
@@ -88,7 +90,9 @@ export default function Sidebar({ collapsed, toggleSidebar }) {
       <nav className="flex flex-col gap-4 p-4">
         {[
           { href: '/', icon: House, label: 'Home' },
-          { href: '/shows', icon: CalendarDays, label: 'Shows' },
+          { href: '/shows/recent', icon:Sparkle, label: "Most Recent Show"},
+          { href: '/book', icon:BookOpen, label: "Read the Book"},
+          { href: '/year', icon: CalendarDays, label: 'Shows' },
           { href: '/songs', icon: Music, label: 'Songs' },
           { href: '/contact', icon: Mail, label: 'Contact' }
         ].map(({ href, icon: Icon, label }) => (

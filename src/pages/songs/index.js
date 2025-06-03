@@ -56,11 +56,21 @@ export default function SongArchivePage() {
         />
       </Head>
 
-      <div className="flex justify-center mb-6 pt-12 sm:pt-16 px-4 sm:px-6">
-        <h1 className="text-5xl sm:text-6xl font-bold drop-shadow-md text-center">
-          All Songs
-        </h1>
+      {/* PHISH Banner */}
+      <div className="flex justify-center pt-10">
+        <img
+          src="/phish-banner.webp"
+          alt="Phish Banner"
+          className="w-[400px] max-w-full h-auto drop-shadow-xl"
+          draggable={false}
+        />
       </div>
+
+        <div className="flex justify-center mb-6">
+          <h2 className="text-6xl sm:text-4xl font-bold text-yellow-100 drop-shadow-md text-center">
+            All Songs
+          </h2>
+        </div>
 
       <div className="flex justify-center">
         <div className="w-full max-w-[825px] relative">
@@ -77,7 +87,7 @@ export default function SongArchivePage() {
             ))}
           </div>
 
-          <ScrollWrapper title="Songs" size="large">
+          <ScrollWrapper title="" size="large">
             <div className="space-y-12 pb-12 w-full max-w-full overflow-x-hidden">
               {Object.entries(groupedSongs)
                 .sort(([a], [b]) => {

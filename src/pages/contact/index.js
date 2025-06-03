@@ -56,7 +56,7 @@ export default function ContactPage() {
           {!sent ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <h1 className="text-2xl font-bold mb-2">Contact Me!</h1>
-              <p>I&rsquo;m Kevin. This is my site. Say &lsquo;hi&rsquo;.</p>
+              <p>Hi! I&rsquo;m Kevin. I&rsquo;m not on social, so reach out here.</p>
 
               <input
                 name="name"
