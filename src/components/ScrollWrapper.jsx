@@ -7,27 +7,21 @@ export default function ScrollWrapper({ title, children, size = "default" }) {
       <img
         src={`../${prefix}-top.png`}
         alt="Scroll top"
-        className="w-full"
+        className="w-full block"
         draggable={false}
       />
 
-      {/* Middle – Repeat scroll-middle.png as a tiled img */}
-      <div className="w-full relative">
-        <div className="absolute inset-0 z-0">
-          <div
-            className="w-full"
-            style={{
-              backgroundImage: `url(../${prefix}-middle.png)`,
-              backgroundRepeat: 'repeat-y',
-              backgroundSize: '100% auto',
-            }}
-          >
-            <div className="invisible">.</div>
-          </div>
-        </div>
-
-        {/* Content over background */}
-        <div className="relative z-10 px-4 sm:px-8 pt-6 pb-8">
+      {/* Middle - dynamic height, full width background */}
+      <div
+        className="w-full bg-repeat-y"
+        style={{
+          backgroundImage: `url(../${prefix}-middle.png)`,
+          backgroundSize: '100% auto',
+          backgroundPosition: 'top center',
+        }}
+      >
+        {/* Padding goes INSIDE so background is full width */}
+        <div className="px-4 sm:px-8 pt-6 pb-8">
           {title && (
             <h2 className="text-xl sm:text-2xl font-rock text-yellow-200 tracking-wide text-center mb-6">
               {title}
@@ -41,7 +35,7 @@ export default function ScrollWrapper({ title, children, size = "default" }) {
       <img
         src={`../${prefix}-bottom.png`}
         alt="Scroll bottom"
-        className="w-full"
+        className="w-full block"
         draggable={false}
       />
     </div>

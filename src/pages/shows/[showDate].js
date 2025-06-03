@@ -190,7 +190,7 @@ export default function SetlistPage({ show, allDates, prevShow, nextShow, showIm
       >
         <div className="flex justify-center mb-0 animate-fade-slide">
           <Image
-            src="/phish-banner.png"
+            src="/phish-banner.webp"
             alt="PHISH Banner"
             width={400}
             height={100}

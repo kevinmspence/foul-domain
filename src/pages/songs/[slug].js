@@ -110,15 +110,6 @@ export default function SongPage({ entries, songName, canonicalUrl }) {
     return (new Date(a.show.showDate) - new Date(b.show.showDate)) * dir;
   });
 
-  const handleSort = (field) => {
-    if (sortBy === field) {
-      setSortAsc(!sortAsc);
-    } else {
-      setSortBy(field);
-      setSortAsc(true);
-    }
-  };
-
   const firstPlayed = entries[entries.length - 1]?.show.showDate;
   const lastPlayed = entries[0]?.show.showDate;
 
@@ -133,28 +124,39 @@ export default function SongPage({ entries, songName, canonicalUrl }) {
       <div
         className="min-h-screen text-yellow-100 font-ticket px-0 pt-0 pb-0 bg-cover bg-no-repeat bg-fixed"
         style={{
-          backgroundImage: `url(${backgroundMiddle})`,
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url(${backgroundMiddle})`,
           backgroundPosition: 'bottom right',
           backgroundSize: 'cover',
         }}
       >
+        <div className="flex justify-center pt-12 mb-0 animate-fade-slide">
+          <img
+            alt="PHISH Banner"
+            src="/phish-banner.webp"
+            width={400}
+            height={100}
+            className="drop-shadow-[0_0_25px_rgba(255,225,150,0.5)]"
+            style={{ color: 'transparent' }}
+          />
+        </div>
+
         <div className="text-center mb-2 drop-shadow-[0_0_20px_rgba(255,255,200,0.6)] pt-4">
           <h1
-            className="text-3xl sm:text-4xl text-yellow-200 capitalize mt-6 mb-4"
+            className="text-3xl sm:text-4xl text-yellow-200 capitalize mt-0 mb-8"
             style={{ fontFamily: 'Rock Salt, cursive', textShadow: '2px 2px 4px rgba(0,0,0,0.7)' }}
           >
             {songName}
           </h1>
         </div>
 
-        <div className="flex justify-center gap-6 mb-6 text-yellow-300 text-lg font-bold">
-          <div className="bg-yellow-900/20 px-4 py-2 rounded border border-yellow-500">
+        <div className="flex flex-nowrap sm:flex-wrap overflow-x-auto justify-start sm:justify-center gap-6 mb-6 text-yellow-300 text-lg font-bold px-4 sm:px-0">
+          <div className="bg-yellow-900/60 backdrop-blur-sm px-4 py-2 rounded border border-yellow-500 whitespace-nowrap">
             Times Played: {entries.length}
           </div>
-          <div className="bg-yellow-900/20 px-4 py-2 rounded border border-yellow-500">
+          <div className="bg-yellow-900/60 backdrop-blur-sm px-4 py-2 rounded border border-yellow-500 whitespace-nowrap">
             First Played: {firstPlayed ? new Date(firstPlayed).toLocaleDateString() : '—'}
           </div>
-          <div className="bg-yellow-900/20 px-4 py-2 rounded border border-yellow-500">
+          <div className="bg-yellow-900/60 backdrop-blur-sm px-4 py-2 rounded border border-yellow-500 whitespace-nowrap">
             Last Played: {lastPlayed ? new Date(lastPlayed).toLocaleDateString() : '—'}
           </div>
         </div>
@@ -168,20 +170,14 @@ export default function SongPage({ entries, songName, canonicalUrl }) {
               backgroundMiddle={backgroundMiddle}
               backgroundBottom={backgroundBottom}
             >
-              <div
-                className="text-center text-yellow-200 text-xl tracking-wide mt-6 mb-4"
-                style={{ fontFamily: 'Rock Salt, cursive' }}
-              >
-                Every time played
-              </div>
               <div className="flex justify-center overflow-x-auto">
-                <table className="w-[85%] max-w-[640px] mx-auto text-left border-collapse text-yellow-100">
-                  <thead>
-                    <tr className="bg-yellow-300 text-black">
-                      <th className="cursor-pointer p-2 border border-yellow-700" onClick={() => handleSort('date')}>Date</th>
-                      <th className="cursor-pointer p-2 border border-yellow-700" onClick={() => handleSort('venue')}>Venue</th>
-                      <th className="cursor-pointer p-2 border border-yellow-700" onClick={() => handleSort('city')}>City</th>
-                      <th className="cursor-pointer p-2 border border-yellow-700" onClick={() => handleSort('state')}>State</th>
+                <table className="w-[90%] max-w-[640px] mx-auto text-left border-collapse text-yellow-100">
+                  <thead className="align-middle">
+                    <tr className="bg-yellow-300 text-black h-12">
+                      <th className="px-4 border border-yellow-700 shadow-inner shadow-yellow-900 text-center">Date</th>
+                      <th className="px-4 border border-yellow-700 shadow-inner shadow-yellow-900 text-center">Venue</th>
+                      <th className="hidden sm:table-cell px-4 border border-yellow-700 shadow-inner shadow-yellow-900 text-center">City</th>
+                      <th className="hidden sm:table-cell px-4 border border-yellow-700 shadow-inner shadow-yellow-900 text-center">State</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -190,16 +186,18 @@ export default function SongPage({ entries, songName, canonicalUrl }) {
                       return (
                         <tr
                           key={index}
-                          className={`hover:bg-yellow-300 hover:text-black transition-all duration-150 ${index % 2 === 0 ? 'bg-yellow-950/10' : 'bg-yellow-900/5'}`}
+                          className={`hover:bg-yellow-300 hover:text-black transition-all duration-150 ${
+                            index % 2 === 0 ? 'bg-yellow-950/10' : 'bg-yellow-900/5'
+                          }`}
                         >
-                          <td className="p-2 border border-yellow-700 underline">
+                          <td className="py-2 px-4 border border-yellow-700">
                             <Link href={`/shows/${showUrl}`}>
                               {new Date(entry.show.showDate).toLocaleDateString()}
                             </Link>
                           </td>
-                          <td className="p-2 border border-yellow-700">{entry.show.venue}</td>
-                          <td className="p-2 border border-yellow-700">{entry.show.city}</td>
-                          <td className="p-2 border border-yellow-700">{entry.show.state}</td>
+                          <td className="py-2 px-4 border border-yellow-700">{entry.show.venue}</td>
+                          <td className="hidden sm:table-cell py-2 px-4 border border-yellow-700">{entry.show.city}</td>
+                          <td className="hidden sm:table-cell py-2 px-4 border border-yellow-700">{entry.show.state}</td>
                         </tr>
                       );
                     })}
