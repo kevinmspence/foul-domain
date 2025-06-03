@@ -15,12 +15,12 @@ export default function ContactPage() {
     e.preventDefault();
     setStatus('Verifying...');
 
-    const recaptchaToken = await recaptchaRef.current.executeAsync();
-    recaptchaRef.current.reset();
-
-    setStatus('Sending...');
-
     try {
+      const recaptchaToken = await recaptchaRef.current.executeAsync();
+      recaptchaRef.current.reset();
+
+      setStatus('Sending...');
+
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -31,9 +31,11 @@ export default function ContactPage() {
         setStatus('Message sent!');
         setFormData({ name: '', email: '', message: '' });
       } else {
-        setStatus('Failed to send message.');
+        const data = await res.json();
+        setStatus(data.error || 'Failed to send message.');
       }
-    } catch {
+    } catch (err) {
+      console.error('Error sending message:', err);
       setStatus('Error sending message.');
     }
   };
@@ -81,7 +83,7 @@ export default function ContactPage() {
           />
 
           <ReCAPTCHA
-            sitekey="6Ld11lQrAAAAANODLzNEh54ncM_fSwqbix4COsZN"
+            sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
             size="invisible"
             ref={recaptchaRef}
           />
@@ -99,4 +101,3 @@ export default function ContactPage() {
     </>
   );
 }
-
