@@ -12,7 +12,7 @@ import {
   BookOpen
 } from 'lucide-react';
 
-export default function Sidebar({ collapsed, toggleSidebar }) {
+export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsMobileOpen }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -52,20 +52,23 @@ export default function Sidebar({ collapsed, toggleSidebar }) {
         sidebarRef.current &&
         !sidebarRef.current.contains(event.target)
       ) {
-        toggleSidebar(true); // force collapse
+        toggleSidebar(true); // collapse desktop
+        setIsMobileOpen(false); // close mobile
         setSearchOpen(false);
         setSearchTerm('');
         setSearchResults([]);
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    if (isMobileOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [toggleSidebar]);
+  }, [toggleSidebar, isMobileOpen]);
 
   const handleSearchClick = () => {
     if (collapsed) {
-      toggleSidebar(false); // expand first
+      toggleSidebar(false);
       setTimeout(() => setSearchOpen(true), 300);
     } else {
       setSearchOpen((prev) => !prev);
@@ -77,11 +80,20 @@ export default function Sidebar({ collapsed, toggleSidebar }) {
   return (
     <div
       ref={sidebarRef}
-      className={`fixed top-0 left-0 h-screen bg-gray-900 text-white z-50 transition-all duration-300 ease-in-out ${
-        collapsed ? 'w-16' : 'w-64'
-      }`}
+      className={`fixed top-0 left-0 h-screen bg-gray-900 text-white z-50 transition-transform duration-300 ease-in-out
+        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} 
+        md:translate-x-0 md:transition-all md:duration-300
+        ${collapsed ? 'md:w-16' : 'md:w-64'} 
+        w-64`}
     >
-      <div className="flex justify-between items-center p-4">
+      {/* Close button only on mobile */}
+      <div className="p-4 flex justify-end md:hidden">
+        <button onClick={() => setIsMobileOpen(false)}>
+          <X size={20} />
+        </button>
+      </div>
+
+      <div className="hidden md:flex justify-between items-center p-4">
         <button onClick={() => toggleSidebar()}>
           {collapsed ? <Menu size={20} /> : <X size={20} />}
         </button>
@@ -90,8 +102,8 @@ export default function Sidebar({ collapsed, toggleSidebar }) {
       <nav className="flex flex-col gap-4 p-4">
         {[
           { href: '/', icon: House, label: 'Home' },
-          { href: '/shows/recent', icon:Sparkle, label: "Most Recent Show"},
-          { href: '/book', icon:BookOpen, label: "Read the Book"},
+          { href: '/shows/recent', icon: Sparkle, label: 'Most Recent Show' },
+          { href: '/book', icon: BookOpen, label: 'Read the Book' },
           { href: '/year', icon: CalendarDays, label: 'Shows' },
           { href: '/songs', icon: Music, label: 'Songs' },
           { href: '/contact', icon: Mail, label: 'Contact' }
@@ -153,6 +165,9 @@ export default function Sidebar({ collapsed, toggleSidebar }) {
                         setSearchOpen(false);
                         setSearchTerm('');
                         setSearchResults([]);
+                        if (window.innerWidth < 768) {
+                          setIsMobileOpen(false);
+                        }
                       }}
                     >
                       {result.label}
