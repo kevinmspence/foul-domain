@@ -83,10 +83,11 @@ export default function ContactPage() {
           />
 
           <ReCAPTCHA
-            sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
-            size="invisible"
-            ref={recaptchaRef}
-          />
+  sitekey="6Ld11lQrAAAAANODLzNEh54ncM_fSwqbix4COsZN"
+  size="invisible"
+  ref={recaptchaRef}
+/>
+
 
           <button
             type="submit"
