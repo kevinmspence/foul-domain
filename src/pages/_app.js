@@ -1,5 +1,6 @@
 import "@/styles/globals.css";
 import Head from "next/head";
+import Layout from "@/components/Layout"; // make sure this path is correct
 
 export default function App({ Component, pageProps }) {
   return (
@@ -7,7 +8,9 @@ export default function App({ Component, pageProps }) {
       <Head>
         <link rel="icon" href="/fish-favicon.ico" />
       </Head>
-      <Component {...pageProps} />
+      <Layout>
+        <Component {...pageProps} />
+      </Layout>
     </>
   );
 }
