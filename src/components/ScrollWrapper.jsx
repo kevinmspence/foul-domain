@@ -21,7 +21,7 @@ export default function ScrollWrapper({ title, children, size = "default" }) {
           minHeight: '70vh', // ✅ Important fix
         }}
       >
-        <div className="px-4 sm:px-8 pt-6 pb-8">
+        <div className="px-4 sm:px-8 pb-8">
           {title && (
             <h2 className="text-xl sm:text-2xl font-rock text-yellow-200 tracking-wide text-center mb-6">
               {title}
