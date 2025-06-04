@@ -17,12 +17,21 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isMounted, setIsMounted] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   const sidebarRef = useRef(null);
   const searchRef = useRef(null);
 
   useEffect(() => {
     setIsMounted(true);
+
+    function handleResize() {
+      setIsDesktop(window.innerWidth >= 768);
+    }
+
+    handleResize(); // initialize
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
@@ -67,7 +76,7 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
   }, [toggleSidebar, isMobileOpen]);
 
   const handleSearchClick = () => {
-    if (collapsed) {
+    if (collapsed && isDesktop) {
       toggleSidebar(false);
       setTimeout(() => setSearchOpen(true), 300);
     } else {
@@ -76,6 +85,8 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
   };
 
   if (!isMounted) return null;
+
+  const shouldCollapseText = collapsed && isDesktop;
 
   return (
     <div
@@ -117,7 +128,7 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
             <Icon size={20} />
             <span
               className={`overflow-hidden whitespace-nowrap transition-all duration-300 ${
-                collapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'
+                shouldCollapseText ? 'opacity-0 w-0' : 'opacity-100 w-auto'
               }`}
             >
               {label}
@@ -133,7 +144,7 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
           <Search size={20} />
           <span
             className={`overflow-hidden whitespace-nowrap transition-all duration-300 ${
-              collapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'
+              shouldCollapseText ? 'opacity-0 w-0' : 'opacity-100 w-auto'
             }`}
           >
             Search
