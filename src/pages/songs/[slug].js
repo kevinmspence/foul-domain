@@ -24,7 +24,9 @@ function slugToSong(slug) {
 export async function getServerSideProps(context) {
   const slug = context.params.slug;
   const songName = slugToSong(slug).toLowerCase();
-  const normalizedSlug = songName.replace(/[^a-z0-9]/gi, '');
+
+  // Normalize for SQL matching: strip spaces, slashes, and hyphens
+  const normalizedSlug = songName.replace(/[\s/-]/g, '');
 
   const result = await sql`
     SELECT se.*, s."showdate", s.venue, s.city, s.state

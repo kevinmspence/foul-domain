@@ -5,17 +5,11 @@ import { useEffect, useState } from 'react';
 import SearchBox from '@/components/SearchBox';
 
 export default function Home() {
-  const [bgImage, setBgImage] = useState('/gamehendge.webp');
+  const [bgImage, setBgImage] = useState(null);
 
   useEffect(() => {
-    const checkScreenSize = () => {
-      const isMobile = window.innerWidth <= 768;
-      setBgImage(isMobile ? '/gamehendge-mobile.webp' : '/gamehendge.webp');
-    };
-
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    setBgImage(isMobile ? '/gamehendge-mobile.webp' : '/gamehendge.webp');
   }, []);
 
   return (
@@ -36,15 +30,18 @@ export default function Home() {
       </Head>
 
       <div className="w-screen h-screen relative overflow-hidden">
-        <Image
-          src={bgImage}
-          alt=""
-          fill
-          priority
-          className="object-cover object-center z-0"
-        />
+        {/* Background image is only rendered client-side to avoid flicker */}
+        {bgImage && (
+          <Image
+            src={bgImage}
+            alt=""
+            fill
+            priority
+            className="object-cover object-center z-0"
+          />
+        )}
 
-        {/* Centered content container */}
+        {/* Content overlay */}
         <div className="absolute inset-0 flex items-center justify-center sm:justify-start px-4 sm:px-10 md:px-20 lg:px-32 z-10">
           <div className="flex flex-col items-center w-full max-w-[480px] text-center animate-fadeInUp">
             {/* Logo */}
@@ -66,12 +63,12 @@ export default function Home() {
             {/* Search Box */}
             <SearchBox containerClass="mb-6 w-full max-w-[90vw] sm:max-w-[375px]" />
 
-            {/* OR Divider */}
+            {/* Divider */}
             <div className="text-orange-500 font-bold text-lg sm:text-xl tracking-widest mt-6 mb-2">
               OR
             </div>
 
-            {/* Browse Button */}
+            {/* Browse Archives Button */}
             <Link href="/book" className="mt-2 w-[70%] max-w-[285px]">
               <Image
                 src="/browse-the-archives.png"
