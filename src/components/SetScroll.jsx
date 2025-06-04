@@ -7,7 +7,7 @@ export default function SetScroll({ title, entries }) {
       <div
         className="w-full h-[150px] bg-center bg-no-repeat"
         style={{
-          backgroundImage: "url('/scroll-top.png')",
+          backgroundImage: "url('/scroll-top.webp')",
           backgroundSize: '100% 100%',
         }}
       />
@@ -16,7 +16,7 @@ export default function SetScroll({ title, entries }) {
       <div
         className="w-full bg-repeat-y px-6 bg-center"
         style={{
-          backgroundImage: "url('/scroll-middle.png')",
+          backgroundImage: "url('/scroll-middle.webp')",
           backgroundSize: '101% auto',
         }}
       >
@@ -42,7 +42,7 @@ export default function SetScroll({ title, entries }) {
       <div
         className="w-full h-[160px] bg-center bg-no-repeat -mt-[1px]"
         style={{
-          backgroundImage: "url('/scroll-bottom.png')",
+          backgroundImage: "url('/scroll-bottom.webp')",
           backgroundSize: '100% 100%',
         }}
       />
