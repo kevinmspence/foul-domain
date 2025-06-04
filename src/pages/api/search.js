@@ -27,11 +27,43 @@ const aliasMap = {
 };
 
 const nicknameMap = {
+  'white album': {dates: ['1994-10-31']},
+  'quadrophenia': {dates: ['1995-10-31']},
+  'remain in light': {dates: ['1996-10-31']},
+  'loaded': {dates: ['1998-10-31']},
+  'exile on main st': {dates: ['2009-10-31']},
+  'waiting for columbus': {dates: ['2010-10-31']},
+  'wingsuit': {dates: ['2013-10-31']},
+  'chilling thrilling': {dates: ['2014-10-31']},
+  'ziggy stardust': {dates: ['2016-10-31']},
+  'kasvot': {dates: ['2018-10-31']},
+  'sci-fi soldier': {dates: ['2021-10-31']},
   'island tour': { range: ['1998-04-02', '1998-04-05'] },
   'big cypress': { range: ['1999-12-30', '1999-12-31'] },
+  'clifford ball': { range: ['1996-08-16', '1996-08-18'] },
+  'great went': { range: ['1997-08-16', '1997-08-18'] },
+  'lemonwheel': { range: ['1998-08-15', '1998-08-17'] },
   'magnaball': { range: ['2015-08-21', '2015-08-23'] },
+  'coventry': { range: ['2004-08-13', '2008-08-16'] },
+  'mondegreen': { range: ['2024-08-15', '2024-08-19'] },
+  'it': { range: ['2003-08-02', '2003-08-04'] },
+  'dark side': { dates: [ '1998-11-02']},
   'festival 8': { range: ['2009-10-30', '2009-11-01'] },
   "dick's": { venue: "Dick's Sporting Goods Park" },
+  "msg": { venue: "Madison Square Garden" },
+  "baker": { range: ['2017-07-21', '2017-08-06'] },
+  "mothership": { venue: "Hampton Coliseum" },
+  "gamehendge": {
+    dates: [
+      '1988-03-12',
+      '1991-10-03',
+      '1993-03-22',
+      '1994-06-26',
+      '1994-07-08',
+      '2023-12-31'
+    ]
+  },
+
 };
 
 export default async function handler(req, res) {
@@ -54,7 +86,6 @@ export default async function handler(req, res) {
   const alias = aliasMap[rawQuery] || aliasMap[tokens.join('')];
   const songSearchTerm = (alias || rawQuery).toLowerCase();
 
-  // SONGS
   const result1 = await sql`
     SELECT DISTINCT song
     FROM "SetlistEntry"
@@ -71,7 +102,6 @@ export default async function handler(req, res) {
     priority: s.song.toLowerCase().startsWith(songSearchTerm) ? 0 : 1,
   })).sort((a, b) => a.priority - b.priority).slice(0, 10);
 
-  // SHOWS
   const result2 = await sql`
     SELECT "showid", venue, city, state, "showdate"
     FROM "Show";
@@ -87,7 +117,6 @@ export default async function handler(req, res) {
   const partialMonth = partialMatch?.[1]?.padStart(2, '0');
   const partialDay = partialMatch?.[2]?.padStart(2, '0');
 
-  // HOLIDAY MATCHES
   const holidayResults = allShows.flatMap((show) => {
     const date = new Date(show.showdate);
     const year = date.getFullYear();
@@ -113,7 +142,6 @@ export default async function handler(req, res) {
     return [];
   });
 
-  // NICKNAME MATCHES
   const nicknameResults = allShows.flatMap((show) => {
     const date = new Date(show.showdate);
     const dateStr = date.toISOString().split('T')[0];
@@ -128,6 +156,18 @@ export default async function handler(req, res) {
       if (config.range) {
         const [start, end] = config.range.map((d) => new Date(d));
         if (date >= start && date <= end) {
+          return [{
+            id: `show-${show.showid}`,
+            label: `${show.venue} – ${show.city}, ${show.state} (${date.toLocaleDateString()})`,
+            type: 'show',
+            slug: dateStr,
+            priority: 1,
+          }];
+        }
+      }
+
+      if (config.dates) {
+        if (config.dates.includes(dateStr)) {
           return [{
             id: `show-${show.showid}`,
             label: `${show.venue} – ${show.city}, ${show.state} (${date.toLocaleDateString()})`,
@@ -155,7 +195,6 @@ export default async function handler(req, res) {
     });
   });
 
-  // FUZZY DATE/LOCATION MATCH
   const showResults = allShows.map((s) => {
     const isoDate = new Date(s.showdate).toISOString().split('T')[0];
     const [year, month, day] = isoDate.split('-');

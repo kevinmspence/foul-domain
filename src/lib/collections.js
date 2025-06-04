@@ -4,8 +4,8 @@ export const collectionTitles = {
   halloween: "Halloween Shows",
   nye: "New Year’s Runs",
   "island-tour": "Island Tour",
-  bustouts: "Best Bust-outs",
-  "darkness-light": "Darkness & Light",
+gamehendge: "Gamehendge Shows",
+"bakers-dozen": "Baker's Dozen"
 };
 
 export function getCollectionShows(slug, allShows) {

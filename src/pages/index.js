@@ -68,15 +68,15 @@ export default function Home() {
               OR
             </div>
 
-            {/* Browse Archives Button */}
-            <Link href="/book" className="mt-2 w-[70%] max-w-[285px]">
+            {/* Browse Archives Button with hover effect */}
+            <Link href="/book" className="mt-2 w-[70%] max-w-[285px] group">
               <Image
                 src="/browse-the-archives.png"
                 alt="Browse the Archives"
                 width={285}
                 height={80}
                 priority
-                className="w-full h-auto transition-transform duration-200"
+                className="w-full h-auto transition-transform duration-300 ease-in-out group-hover:scale-105 group-hover:brightness-110 group-hover:drop-shadow-[0_4px_12px_rgba(255,255,200,0.4)]"
               />
             </Link>
           </div>
