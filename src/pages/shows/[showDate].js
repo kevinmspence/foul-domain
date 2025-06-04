@@ -84,7 +84,7 @@ export default function SetlistPage({ show, allDates, prevShow, nextShow, showIm
       const found =
         (await testImage(showImage)) ||
         (await testImage(venueImage)) ||
-        '/venues/default.png';
+        '/venues/default.webp';
 
       sessionStorage.setItem(cacheKey, found);
       setBackgroundImage(found);
