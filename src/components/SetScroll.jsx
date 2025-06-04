@@ -31,7 +31,9 @@ export default function SetScroll({ title, entries }) {
                 <span className="block text-yellow-400 italic mb-1 mt-4">Encore</span>
               )}
               <Link href={`/songs/${encodeURIComponent(entry.song.toLowerCase().replace(/\s+/g, '-'))}`}>
-                <span className="hover:underline hover:text-yellow-300 transition">{entry.song}</span>
+                <span className="md:hover:underline md:hover:text-yellow-300 transition">
+                  {entry.song}
+                </span>
               </Link>
             </li>
           ))}
