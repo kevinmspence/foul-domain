@@ -8,7 +8,6 @@ const collectionLinks = [
   { name: "New Year’s Shows", slug: "nye" },
   { name: "Island Tour", slug: "island-tour" },
   { name: "Baker's Dozen", slug: "bakers-dozen" },
-  { name: "Festivals", slug: "festivals" },
   { name: "Gamehendge", slug: "gamehendge" },
 ];
 
@@ -64,10 +63,10 @@ export default function BookPage({ years }) {
           backgroundAttachment: "fixed",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "bottom right",
-          aspectRatio: '3 / 2', // helps with layout shift
         }}
       >
         <div className="px-4 sm:px-6 py-12">
+          {/* Title */}
           <div className="flex justify-center mb-6">
             <h1 className="text-6xl sm:text-7xl font-bold text-yellow-100 drop-shadow-md text-center">
               The Helping<br />
@@ -75,6 +74,7 @@ export default function BookPage({ years }) {
             </h1>
           </div>
 
+          {/* Subtitle */}
           <div className="flex justify-center items-center mb-6">
             <h2
               className="text-center text-lg"
@@ -90,20 +90,22 @@ export default function BookPage({ years }) {
             </h2>
           </div>
 
+          {/* Scroll */}
           <div className="flex justify-center">
-            <div className="w-[90vw] max-w-[825px]">
+            <div className="w-full sm:w-[90vw] sm:max-w-[825px]">
               <ScrollWrapper size="large">
                 <div className="text-center space-y-6 px-4">
+                  {/* Special Collections */}
                   <section className="px-4">
                     <h3 className="text-xl sm:text-2xl font-bold text-yellow-200 mb-2">
                       Special Collections
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 justify-center">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                       {collectionLinks.map(({ name, slug }, index) => (
                         <Link
                           key={slug}
                           href={`/collection/${slug}`}
-                          className="bg-parchment text-black font-bold text-sm text-center px-3 py-2 w-full max-w-[160px] mx-auto rounded-md-lg border border-edge shadow-inset-subtle transition-all duration-200 hover:brightness-105"
+                          className="bg-parchment text-black font-bold text-sm text-center px-3 py-2 w-full rounded-md-lg border border-edge shadow-inset-subtle transition-all duration-200 hover:brightness-105"
                           style={{ transitionDelay: `${index * 40}ms` }}
                         >
                           {name}
@@ -112,6 +114,7 @@ export default function BookPage({ years }) {
                     </div>
                   </section>
 
+                  {/* Years */}
                   <section className="pt-8 px-4">
                     <h3 className="text-xl sm:text-2xl font-bold text-yellow-200 mb-2">
                       Entries by Year
