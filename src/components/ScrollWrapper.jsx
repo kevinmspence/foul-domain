@@ -5,7 +5,7 @@ export default function ScrollWrapper({ title, children, size = "default" }) {
     <div className="w-full max-w-full flex flex-col items-stretch drop-shadow-[0_8px_20px_rgba(0,0,0,0.5)]">
       {/* Top */}
       <img
-        src={`../${prefix}-top.png`}
+        src={`../${prefix}-top.webp`}
         alt="Scroll top"
         className="w-full block"
         draggable={false}
@@ -15,7 +15,7 @@ export default function ScrollWrapper({ title, children, size = "default" }) {
       <div
         className="w-full bg-repeat-y"
         style={{
-          backgroundImage: `url(../${prefix}-middle.png)`,
+          backgroundImage: `url(../${prefix}-middle.webp)`,
           backgroundSize: '100% auto',
           backgroundPosition: 'top center',
         }}
@@ -33,7 +33,7 @@ export default function ScrollWrapper({ title, children, size = "default" }) {
 
       {/* Bottom */}
       <img
-        src={`../${prefix}-bottom.png`}
+        src={`../${prefix}-bottom.webp`}
         alt="Scroll bottom"
         className="w-full block"
         draggable={false}

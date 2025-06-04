@@ -64,7 +64,7 @@ export async function getServerSideProps(context) {
 }
 
 export default function SetlistPage({ show, allDates, prevShow, nextShow, showImage, venueImage }) {
-  const [backgroundImage, setBackgroundImage] = useState('/venues/default.png');
+  const [backgroundImage, setBackgroundImage] = useState('/venues/default.webp');
 
   useEffect(() => {
     const cacheKey = `bgimg-${show.showDate}`;
