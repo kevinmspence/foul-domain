@@ -4,7 +4,6 @@ import ShowNotes from '@/components/ShowNotes';
 import Image from 'next/image';
 import Link from 'next/link';
 import sql from '@/lib/sql';
-import { useEffect, useState } from 'react';
 
 export async function getServerSideProps(context) {
   const { showDate } = context.params;
@@ -47,6 +46,13 @@ export async function getServerSideProps(context) {
 
   const venueSlug = show.venue?.toLowerCase().replace(/[^a-z0-9]/g, '-');
 
+  // ✅ Resolve background image during SSR
+  const backgroundImage = [
+    `/shows/${showDateStr}.webp`,
+    `/venues/${venueSlug}.webp`,
+    '/venues/default.webp',
+  ];
+
   return {
     props: {
       show: {
@@ -57,40 +63,12 @@ export async function getServerSideProps(context) {
       allDates,
       prevShow,
       nextShow,
-      showImage: `/shows/${showDateStr}.png`,
-      venueImage: `/venues/${venueSlug}.png`,
+      backgroundImage: backgroundImage,
     },
   };
 }
 
-export default function SetlistPage({ show, allDates, prevShow, nextShow, showImage, venueImage }) {
-  const [backgroundImage, setBackgroundImage] = useState('/venues/default.webp');
-
-  useEffect(() => {
-    const cacheKey = `bgimg-${show.showDate}`;
-    const cached = sessionStorage.getItem(cacheKey);
-    if (cached) return setBackgroundImage(cached);
-
-    const testImage = (src) =>
-      new Promise((resolve) => {
-        if (typeof window === 'undefined') return resolve(null);
-        const img = new window.Image();
-        img.src = src;
-        img.onload = () => resolve(src);
-        img.onerror = () => resolve(null);
-      });
-
-    (async () => {
-      const found =
-        (await testImage(showImage)) ||
-        (await testImage(venueImage)) ||
-        '/venues/default.webp';
-
-      sessionStorage.setItem(cacheKey, found);
-      setBackgroundImage(found);
-    })();
-  }, [show.showDate, showImage, venueImage]);
-
+export default function SetlistPage({ show, allDates, prevShow, nextShow, backgroundImage }) {
   const sets = { 1: [], 2: [], 3: [], encore: [], other: [] };
 
   for (const entry of show.entries) {
@@ -176,12 +154,26 @@ export default function SetlistPage({ show, allDates, prevShow, nextShow, showIm
         <meta property="og:description" content={description} />
         <meta property="og:type" content="website" />
         <link rel="canonical" href={canonicalUrl} />
+        {/* Preload font and background image */}
+        <link
+          rel="preload"
+          href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap"
+          as="style"
+          onLoad="this.onload=null;this.rel='stylesheet'"
+        />
+        <noscript>
+          <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap"
+          />
+        </noscript>
+        <link rel="preload" as="image" href={backgroundImage[0]} />
       </Head>
 
       <div
         className="min-h-screen text-yellow-100 font-ticket px-6 py-12"
         style={{
-          backgroundImage: `url('${backgroundImage}')`,
+          backgroundImage: `url('${backgroundImage[0]}')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -194,6 +186,8 @@ export default function SetlistPage({ show, allDates, prevShow, nextShow, showIm
             alt="PHISH Banner"
             width={400}
             height={100}
+            priority
+            sizes="(max-width: 600px) 75vw, 400px"
             className="drop-shadow-[0_0_25px_rgba(255,225,150,0.5)]"
           />
         </div>
