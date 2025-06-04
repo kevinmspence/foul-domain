@@ -1,3 +1,5 @@
+// pages/shows/[showDate].js
+
 import Head from 'next/head';
 import SetScroll from '@/components/SetScroll';
 import ShowNotes from '@/components/ShowNotes';
@@ -19,7 +21,7 @@ export async function getServerSideProps(context) {
   `;
 
   const showRows = Array.isArray(result) ? result : result?.rows || [];
-  if (!Array.isArray(showRows) || !showRows.length) return { notFound: true };
+  if (!showRows.length) return { notFound: true };
 
   const show = {
     ...showRows[0],
@@ -36,58 +38,35 @@ export async function getServerSideProps(context) {
   const result3 = await sql`
     SELECT "showdate" FROM "Show" ORDER BY "showdate" ASC;
   `;
-  const allShowDates = Array.isArray(result3) ? result3 : result3?.rows || [];
+  const allDates = (Array.isArray(result3) ? result3 : result3?.rows || []).map(
+    (r) => r.showdate.toISOString().split('T')[0]
+  );
 
-  const allDates = allShowDates.map((r) => r.showdate.toISOString().split('T')[0]);
   const showDateStr = show.showdate.split('T')[0];
   const currentIndex = allDates.indexOf(showDateStr);
   const prevShow = allDates[currentIndex - 1] || null;
   const nextShow = allDates[currentIndex + 1] || null;
 
-  const venueSlug = show.venue?.toLowerCase().replace(/[^a-z0-9]/g, '-');
-
-  // ✅ Resolve background image during SSR
-  const backgroundImage = [
-    `/shows/${showDateStr}.webp`,
-    `/venues/${venueSlug}.webp`,
-    '/venues/default.webp',
-  ];
-
   return {
     props: {
-      show: {
-        ...show,
-        showDate: showDateStr,
-        entries,
-      },
-      allDates,
+      show: { ...show, showDate: showDateStr, entries },
       prevShow,
       nextShow,
-      backgroundImage: backgroundImage,
     },
   };
 }
 
-export default function SetlistPage({ show, allDates, prevShow, nextShow, backgroundImage }) {
+export default function SetlistPage({ show, prevShow, nextShow }) {
   const sets = { 1: [], 2: [], 3: [], encore: [], other: [] };
 
   for (const entry of show.entries) {
-    const raw = entry.rawdata || entry.raw_data || {};
-    let parsed = {};
+    let raw = entry.rawdata || entry.raw_data || {};
+    try {
+      if (typeof raw === 'string') raw = JSON.parse(raw);
+    } catch {}
+    entry.rawdata = raw;
 
-    if (typeof raw === 'string') {
-      try {
-        parsed = JSON.parse(raw);
-      } catch {
-        parsed = {};
-      }
-    } else if (typeof raw === 'object' && raw !== null) {
-      parsed = raw;
-    }
-
-    entry.rawdata = parsed;
-
-    const setVal = parsed?.set?.toString().toLowerCase();
+    const setVal = raw?.set?.toString().toLowerCase();
     if (setVal === '1') sets[1].push(entry);
     else if (setVal === '2') sets[2].push(entry);
     else if (setVal === '3') sets[3].push(entry);
@@ -98,16 +77,11 @@ export default function SetlistPage({ show, allDates, prevShow, nextShow, backgr
   Object.values(sets).forEach((arr) => arr.sort((a, b) => a.sequence - b.sequence));
 
   if (sets.encore.length > 0) {
-    const taggedEncore = sets.encore.map((entry, i) => ({
-      ...entry,
-      isEncore: i === 0,
-    }));
-
+    const taggedEncore = sets.encore.map((entry, i) => ({ ...entry, isEncore: i === 0 }));
     if (sets[3].length > 0) sets[3].push(...taggedEncore);
     else if (sets[2].length > 0) sets[2].push(...taggedEncore);
     else if (sets[1].length > 0) sets[1].push(...taggedEncore);
     else sets.other.push(...taggedEncore);
-
     sets.encore = [];
   }
 
@@ -118,9 +92,7 @@ export default function SetlistPage({ show, allDates, prevShow, nextShow, backgr
     { title: 'Other', entries: sets.other },
   ].filter((group) => group.entries.length > 0);
 
-  const noteEntry = show.entries.find(
-    (entry) => entry.rawdata?.setlistnotes?.trim()
-  );
+  const noteEntry = show.entries.find((e) => e.rawdata?.setlistnotes?.trim());
   const showNotes = noteEntry?.rawdata.setlistnotes
     ?.replace(/<[^>]+>/g, '')
     ?.replace(/&nbsp;/g, ' ')
@@ -136,11 +108,10 @@ export default function SetlistPage({ show, allDates, prevShow, nextShow, backgr
 
   const [year, month, day] = show.showDate.split('-');
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
+    'January','February','March','April','May','June',
+    'July','August','September','October','November','December'
   ];
   const formattedDate = `${monthNames[parseInt(month, 10) - 1]} ${parseInt(day, 10)}, ${year}`;
-
   const title = `${show.venue} – ${formattedDate} | Foul Domain`;
   const description = `See the full Phish setlist from ${formattedDate} at ${show.venue} in ${show.city}, ${show.state}.`;
   const canonicalUrl = `https://fouldomain.com/shows/${show.showDate}`;
@@ -154,26 +125,18 @@ export default function SetlistPage({ show, allDates, prevShow, nextShow, backgr
         <meta property="og:description" content={description} />
         <meta property="og:type" content="website" />
         <link rel="canonical" href={canonicalUrl} />
-        {/* Preload font and background image */}
         <link
           rel="preload"
-          href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap"
-          as="style"
-          onLoad="this.onload=null;this.rel='stylesheet'"
+          as="image"
+          href="/venues/default.webp"
+          type="image/webp"
         />
-        <noscript>
-          <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap"
-          />
-        </noscript>
-        <link rel="preload" as="image" href={backgroundImage[0]} />
       </Head>
 
       <div
         className="min-h-screen text-yellow-100 font-ticket px-6 py-12"
         style={{
-          backgroundImage: `url('${backgroundImage[0]}')`,
+          backgroundImage: "url('/venues/default.webp')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -187,7 +150,7 @@ export default function SetlistPage({ show, allDates, prevShow, nextShow, backgr
             width={400}
             height={100}
             priority
-            sizes="(max-width: 600px) 75vw, 400px"
+            sizes="(max-width: 600px) 100vw, 400px"
             className="drop-shadow-[0_0_25px_rgba(255,225,150,0.5)]"
           />
         </div>
