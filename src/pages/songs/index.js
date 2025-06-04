@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Head from "next/head";
+import Image from "next/image";
 import ScrollWrapper from "@/components/ScrollWrapper";
 
 export default function SongArchivePage() {
@@ -40,12 +41,13 @@ export default function SongArchivePage() {
     <div
       className="min-h-screen overflow-x-hidden text-yellow-100 font-ticket"
       style={{
-        backgroundImage: "url('/backgrounds/songs.png')",
+        backgroundImage: "url('/backgrounds/songs.webp')", // ✅ switched to webp
         backgroundColor: '#0d0d0d',
         backgroundSize: 'cover',
         backgroundAttachment: 'fixed',
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'bottom right',
+        aspectRatio: '3 / 2' // ✅ prevents layout shift
       }}
     >
       <Head>
@@ -54,26 +56,30 @@ export default function SongArchivePage() {
           name="description"
           content="Browse all Phish songs performed live. Click a song to explore when and where it was played."
         />
+        <link rel="canonical" href="https://fouldomain.com/songs" />
       </Head>
 
       {/* PHISH Banner */}
       <div className="flex justify-center pt-10">
-        <img
+        <Image
           src="/phish-banner.webp"
           alt="Phish Banner"
-          className="w-[400px] max-w-full h-auto drop-shadow-xl"
-          draggable={false}
+          width={400}
+          height={100}
+          priority
+          className="drop-shadow-xl"
         />
       </div>
 
-        <div className="flex justify-center mb-6">
-          <h2 className="text-6xl sm:text-4xl font-bold text-yellow-100 drop-shadow-md text-center">
-            All Songs
-          </h2>
-        </div>
+      <div className="flex justify-center mb-6">
+        <h2 className="text-6xl sm:text-4xl font-bold text-yellow-100 drop-shadow-md text-center">
+          All Songs
+        </h2>
+      </div>
 
       <div className="flex justify-center">
         <div className="w-full max-w-[825px] relative">
+
           {/* Floating A-Z Index */}
           <div className="fixed top-28 right-2 z-50 hidden sm:flex flex-col items-center space-y-1 text-sm font-bold text-yellow-400 bg-black/60 backdrop-blur p-2 rounded-lg border border-yellow-800 shadow-md">
             {["#", ...Array.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ")].map((letter) => (
@@ -81,6 +87,7 @@ export default function SongArchivePage() {
                 key={letter}
                 onClick={() => scrollToLetter(letter)}
                 className="hover:text-yellow-100 transition"
+                aria-label={`Jump to ${letter}`}
               >
                 {letter}
               </button>
