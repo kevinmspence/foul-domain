@@ -1,4 +1,3 @@
-// components/Sidebar.jsx
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
@@ -9,8 +8,7 @@ import {
   Music,
   Mail,
   Search,
-  Sparkle,
-  BookOpen
+  Sparkle
 } from 'lucide-react';
 
 export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsMobileOpen }) {
@@ -89,6 +87,16 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
 
   const shouldCollapseText = collapsed && isDesktop;
 
+  const handleLinkClick = () => {
+    if (window.innerWidth < 768) {
+      setIsMobileOpen(false);
+      setSearchOpen(false);
+      setSearchTerm('');
+      setSearchResults([]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
     <div
       ref={sidebarRef}
@@ -98,19 +106,25 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
         ${collapsed ? 'md:w-16' : 'md:w-64'} 
         w-64`}
     >
-      <div className="p-4 flex justify-end md:hidden">
-        <button onClick={() => setIsMobileOpen(false)}>
-          <X size={20} />
+      {/* Mobile close button (top-left) */}
+      <div className="absolute top-4 left-4 md:hidden z-50">
+        <button
+          onClick={() => setIsMobileOpen(false)}
+          aria-label="Close menu"
+          className="p-2 rounded hover:bg-gray-800 transition"
+        >
+          <X size={24} />
         </button>
       </div>
 
+      {/* Desktop collapse toggle */}
       <div className="hidden md:flex justify-between items-center p-4">
         <button onClick={() => toggleSidebar()}>
           {collapsed ? <Menu size={20} /> : <X size={20} />}
         </button>
       </div>
 
-      <nav className="flex flex-col gap-4 p-4">
+      <nav className="flex flex-col gap-4 p-4 mt-12 md:mt-0">
         {[
           { href: '/', icon: House, label: 'Home' },
           { href: '/shows/recent', icon: Sparkle, label: 'Most Recent Show' },
@@ -123,6 +137,7 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
             href={href}
             title={label}
             className="flex items-center gap-3 hover:text-gray-300"
+            onClick={handleLinkClick}
           >
             <Icon size={20} />
             <span
@@ -177,6 +192,7 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
                         setSearchResults([]);
                         if (window.innerWidth < 768) {
                           setIsMobileOpen(false);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
                         }
                       }}
                     >

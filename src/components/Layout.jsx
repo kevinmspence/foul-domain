@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Sidebar from './Sidebar';
+import { Menu } from 'lucide-react';
 
 export default function Layout({ children }) {
   const [collapsed, setCollapsed] = useState(true);
@@ -73,18 +74,18 @@ export default function Layout({ children }) {
         />
       )}
 
-      {/* ☰ Floating open button (mobile only, bottom-left) */}
+      {/* ☰ Floating open button (mobile only, top-left) */}
       {!isMobileOpen && (
         <button
           onClick={() => setIsMobileOpen(true)}
-          className="fixed bottom-4 left-4 z-50 bg-gray-800 text-white px-3 py-2 rounded-full shadow-lg md:hidden"
+          className="fixed top-4 left-4 z-50 bg-gray-800 text-white p-2 rounded hover:bg-gray-700 transition md:hidden"
           aria-label="Open Menu"
         >
-          ☰
+          <Menu size={24} />
         </button>
       )}
 
-      {/* Main content area (pushes right on desktop) */}
+      {/* Main content area */}
       <div
         className={`transition-all duration-300 min-h-screen bg-black text-white ${
           collapsed ? 'md:ml-16' : 'md:ml-64'
