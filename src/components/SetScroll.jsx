@@ -2,7 +2,7 @@ import React from 'react';
 import { useAudioPlayer } from './AudioPlayerContext';
 
 export default function SetScroll({ title, entries, showInfo }) {
-  const { playTrack } = useAudioPlayer();
+  const { playTrack, pause, currentTrack, isPlaying } = useAudioPlayer();
 
   const queue = entries
     .filter((e) => !!e.audioUrl)
@@ -22,8 +22,14 @@ export default function SetScroll({ title, entries, showInfo }) {
           const audioUrl = entry.audioUrl || null;
           const duration = entry.durationSeconds || null;
 
-          const handlePlay = () => {
-            if (audioUrl) {
+          const isThisTrackPlaying =
+            currentTrack?.url === audioUrl && isPlaying;
+
+          const handleToggle = () => {
+            if (!audioUrl) return;
+            if (isThisTrackPlaying) {
+              pause();
+            } else {
               playTrack(
                 { title: entry.song, url: audioUrl },
                 queue,
@@ -49,11 +55,12 @@ export default function SetScroll({ title, entries, showInfo }) {
               <div className="flex items-center gap-4 flex-shrink-0">
                 {audioUrl ? (
                   <button
-                    onClick={handlePlay}
-                    className="w-8 h-8 flex items-center justify-center bg-yellow-400 hover:bg-yellow-300 text-black rounded-full font-bold"
-                    title="Play"
+                    onClick={handleToggle}
+                    className="text-indigo-400 hover:text-indigo-200 transition"
+                    title={isThisTrackPlaying ? 'Pause track' : 'Play track'}
+                    aria-label={isThisTrackPlaying ? 'Pause track' : 'Play track'}
                   >
-                    ▶
+                    {isThisTrackPlaying ? '⏸' : '▶'}
                   </button>
                 ) : (
                   <span className="text-sm text-white/40 italic">No audio</span>

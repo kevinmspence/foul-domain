@@ -1,17 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import sql from '@/lib/sql';
-import ScrollWrapper from '@/components/ScrollWrapper';
-
-function sanitizeForFilename(name) {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-');
-}
+import { useAudioPlayer } from '@/components/AudioPlayerContext';
 
 function slugToSong(slug) {
   return slug
@@ -21,12 +12,14 @@ function slugToSong(slug) {
     .trim();
 }
 
+function toTitleCase(str) {
+  return str.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export async function getServerSideProps(context) {
   const slug = context.params.slug;
-  const songName = slugToSong(slug).toLowerCase();
-
-  // Normalize for SQL matching: strip spaces, slashes, and hyphens
-  const normalizedSlug = songName.replace(/[\s/-]/g, '');
+  const songName = slugToSong(slug);
+  const normalizedSlug = songName.toLowerCase().replace(/[\s/-]/g, '');
 
   const result = await sql`
     SELECT se.*, s."showdate", s.venue, s.city, s.state
@@ -65,151 +58,144 @@ export async function getServerSideProps(context) {
 export default function SongPage({ entries, songName, canonicalUrl }) {
   const [sortBy, setSortBy] = useState('date');
   const [sortAsc, setSortAsc] = useState(false);
-  const [backgroundMiddle, setBackgroundMiddle] = useState(null);
-
-  const backgroundTop = '/scroll-top.png';
-  const backgroundBottom = '/scroll-bottom.png';
-
-  useEffect(() => {
-    const cached = sessionStorage.getItem(`bg-${songName}`);
-    if (cached) {
-      setBackgroundMiddle(cached);
-      return;
-    }
-
-    const slug = sanitizeForFilename(songName);
-    const testImage = (src) =>
-      new Promise((resolve) => {
-        const img = new window.Image();
-        img.src = src;
-        img.onload = () => resolve(src);
-        img.onerror = () => resolve(null);
-      });
-
-    const tryImages = async () => {
-      const custom = `/song-backgrounds/${slug}.webp`;
-      const found = (await testImage(custom)) || '/song-backgrounds/default.png';
-      sessionStorage.setItem(`bg-${songName}`, found);
-      setBackgroundMiddle(found);
-    };
-
-    tryImages();
-  }, [songName]);
-
-  if (!backgroundMiddle) {
-    return (
-      <div className="min-h-screen bg-black text-yellow-100 font-ticket flex items-center justify-center">
-        <p className="text-xl animate-pulse">Loading background...</p>
-      </div>
-    );
-  }
+  const { playTrack } = useAudioPlayer();
 
   const sortedEntries = [...entries].sort((a, b) => {
     const dir = sortAsc ? 1 : -1;
     if (sortBy === 'venue') return a.show.venue.localeCompare(b.show.venue) * dir;
     if (sortBy === 'city') return a.show.city.localeCompare(b.show.city) * dir;
     if (sortBy === 'state') return a.show.state.localeCompare(b.show.state) * dir;
+    if (sortBy === 'duration') return ((a.durationSeconds || 0) - (b.durationSeconds || 0)) * dir;
     return (new Date(a.show.showDate) - new Date(b.show.showDate)) * dir;
   });
 
   const firstPlayed = entries[entries.length - 1]?.show.showDate;
   const lastPlayed = entries[0]?.show.showDate;
 
+  const formatDuration = (secs) => {
+    if (!secs || secs <= 0) return '—';
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    return h > 0
+      ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+      : `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const handlePlay = (entry) => {
+    const show = {
+      venue: entry.show.venue,
+      city: entry.show.city,
+      state: entry.show.state,
+      date: new Date(entry.show.showDate).toLocaleDateString(),
+    };
+
+    const track = {
+      title: toTitleCase(songName),
+      url: entry.audioUrl,
+    };
+
+    playTrack(track, [track], show);
+  };
+
+  const toggleSort = (field) => {
+    if (sortBy === field) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortBy(field);
+      setSortAsc(false);
+    }
+  };
+
   return (
     <>
       <Head>
-        <title>{`Foul Domain – ${songName}`}</title>
+        <title>{`Foul Domain – ${toTitleCase(songName)}`}</title>
         <meta name="description" content={`Performance history for ${songName}`} />
         <link rel="canonical" href={canonicalUrl} />
       </Head>
 
-      <div
-        className="min-h-screen text-yellow-100 font-ticket px-0 pt-0 pb-0 bg-cover bg-no-repeat bg-fixed"
-        style={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url(${backgroundMiddle})`,
-          backgroundPosition: 'bottom right',
-          backgroundSize: 'cover',
-        }}
-      >
-        <div className="flex justify-center pt-12 mb-0 animate-fade-slide">
-          <img
-            alt="PHISH Banner"
-            src="/phish-banner.webp"
-            width={400}
-            height={100}
-            className="drop-shadow-[0_0_25px_rgba(255,225,150,0.5)]"
-            style={{ color: 'transparent' }}
-          />
-        </div>
-
-        <div className="text-center mb-2 drop-shadow-[0_0_20px_rgba(255,255,200,0.6)] pt-4">
-          <h1
-            className="text-3xl sm:text-4xl text-yellow-200 capitalize mt-0 mb-8"
-            style={{ fontFamily: 'Rock Salt, cursive', textShadow: '2px 2px 4px rgba(0,0,0,0.7)' }}
-          >
+      <main className="min-h-screen bg-gray-950 text-gray-100 font-mono px-4 py-20">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-wide text-center capitalize">
             {songName}
           </h1>
-        </div>
 
-        <div className="flex flex-nowrap sm:flex-wrap overflow-x-auto justify-start sm:justify-center gap-6 mb-6 text-yellow-300 text-lg font-bold px-4 sm:px-0">
-          <div className="bg-yellow-900/60 backdrop-blur-sm px-4 py-2 rounded border border-yellow-500 whitespace-nowrap">
-            Times Played: {entries.length}
+          <div className="flex flex-wrap justify-center gap-4 my-8 text-sm sm:text-base text-gray-200">
+            <div className="px-4 py-2 bg-gray-800 border border-gray-700 rounded">
+              Times Played: {entries.length}
+            </div>
+            <div className="px-4 py-2 bg-gray-800 border border-gray-700 rounded">
+              First Played: {firstPlayed ? new Date(firstPlayed).toLocaleDateString() : '—'}
+            </div>
+            <div className="px-4 py-2 bg-gray-800 border border-gray-700 rounded">
+              Last Played: {lastPlayed ? new Date(lastPlayed).toLocaleDateString() : '—'}
+            </div>
           </div>
-          <div className="bg-yellow-900/60 backdrop-blur-sm px-4 py-2 rounded border border-yellow-500 whitespace-nowrap">
-            First Played: {firstPlayed ? new Date(firstPlayed).toLocaleDateString() : '—'}
-          </div>
-          <div className="bg-yellow-900/60 backdrop-blur-sm px-4 py-2 rounded border border-yellow-500 whitespace-nowrap">
-            Last Played: {lastPlayed ? new Date(lastPlayed).toLocaleDateString() : '—'}
-          </div>
-        </div>
 
-        {entries.length === 0 ? (
-          <p className="text-center text-lg">No performances found for this song.</p>
-        ) : (
-          <div className="w-full px-4 sm:px-0 max-w-[95vw] sm:max-w-[860px] mx-auto">
-            <ScrollWrapper
-              backgroundTop={backgroundTop}
-              backgroundMiddle={backgroundMiddle}
-              backgroundBottom={backgroundBottom}
-            >
-              <div className="flex justify-center overflow-x-auto">
-                <table className="w-[90%] max-w-[640px] mx-auto text-left border-collapse text-yellow-100">
-                  <thead className="align-middle">
-                    <tr className="bg-yellow-300 text-black h-12">
-                      <th className="px-4 border border-yellow-700 shadow-inner shadow-yellow-900 text-center">Date</th>
-                      <th className="px-4 border border-yellow-700 shadow-inner shadow-yellow-900 text-center">Venue</th>
-                      <th className="hidden sm:table-cell px-4 border border-yellow-700 shadow-inner shadow-yellow-900 text-center">City</th>
-                      <th className="hidden sm:table-cell px-4 border border-yellow-700 shadow-inner shadow-yellow-900 text-center">State</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedEntries.map((entry, index) => {
-                      const showUrl = new Date(entry.show.showDate).toISOString().split('T')[0];
-                      return (
-                        <tr
-                          key={index}
-                          className={`hover:bg-yellow-300 hover:text-black transition-all duration-150 ${
-                            index % 2 === 0 ? 'bg-yellow-950/10' : 'bg-yellow-900/5'
-                          }`}
-                        >
-                          <td className="py-2 px-4 border border-yellow-700">
-                            <Link href={`/shows/${showUrl}`}>
-                              {new Date(entry.show.showDate).toLocaleDateString()}
-                            </Link>
-                          </td>
-                          <td className="py-2 px-4 border border-yellow-700">{entry.show.venue}</td>
-                          <td className="hidden sm:table-cell py-2 px-4 border border-yellow-700">{entry.show.city}</td>
-                          <td className="hidden sm:table-cell py-2 px-4 border border-yellow-700">{entry.show.state}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </ScrollWrapper>
-          </div>
-        )}
-      </div>
+          {entries.length === 0 ? (
+            <p className="text-center text-lg">No performances found for this song.</p>
+          ) : (
+            <div className="overflow-x-auto border border-gray-800 rounded">
+              <table className="min-w-full text-sm sm:text-base text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-800 text-gray-200">
+                    <th onClick={() => toggleSort('date')} className="px-4 py-3 border-b border-gray-700 text-center cursor-pointer">Date</th>
+                    <th onClick={() => toggleSort('venue')} className="px-4 py-3 border-b border-gray-700 text-center cursor-pointer">Venue</th>
+                    <th onClick={() => toggleSort('city')} className="hidden sm:table-cell px-4 py-3 border-b border-gray-700 text-center cursor-pointer">City</th>
+                    <th onClick={() => toggleSort('state')} className="hidden sm:table-cell px-4 py-3 border-b border-gray-700 text-center cursor-pointer">State</th>
+                    <th onClick={() => toggleSort('duration')} className="px-4 py-3 border-b border-gray-700 text-center cursor-pointer">Duration</th>
+                    <th className="px-4 py-3 border-b border-gray-700 text-center">Play</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedEntries.map((entry, index) => {
+                    const showUrl = new Date(entry.show.showDate).toISOString().split('T')[0];
+                    return (
+                      <tr
+                        key={index}
+                        className={index % 2 === 0 ? 'bg-gray-900/50' : 'bg-gray-900/30'}
+                      >
+                        <td className="px-4 py-2 border-t border-gray-800 text-center">
+                          <Link href={`/shows/${showUrl}`} className="hover:underline text-indigo-300">
+                            {new Date(entry.show.showDate).toLocaleDateString()}
+                          </Link>
+                        </td>
+                        <td className="px-4 py-2 border-t border-gray-800 text-center">
+                          {entry.show.venue}
+                        </td>
+                        <td className="hidden sm:table-cell px-4 py-2 border-t border-gray-800 text-center">
+                          {entry.show.city}
+                        </td>
+                        <td className="hidden sm:table-cell px-4 py-2 border-t border-gray-800 text-center">
+                          {entry.show.state}
+                        </td>
+                        <td className="px-4 py-2 border-t border-gray-800 text-center">
+                          {formatDuration(entry.durationSeconds)}
+                        </td>
+                        <td className="px-4 py-2 border-t border-gray-800 text-center">
+                          {entry.audioUrl ? (
+                            <button
+                              onClick={() => handlePlay(entry)}
+                              className="text-indigo-400 hover:text-indigo-200 transition"
+                              title="Play track"
+                              aria-label="Play track"
+                            >
+                              ▶
+                            </button>
+                          ) : (
+                            <span className="text-gray-600">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </main>
     </>
   );
 }

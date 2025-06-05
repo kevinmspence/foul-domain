@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useRef, useEffect } from 'react';
 
 const AudioPlayerContext = createContext();
 
@@ -8,8 +8,30 @@ export function AudioPlayerProvider({ children }) {
   const [nextTrack, setNextTrack] = useState(null);
   const [queue, setQueue] = useState([]);
   const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+    }
+
+    const audio = audioRef.current;
+
+    const handleEnded = () => playNext();
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, []);
 
   const playTrack = (track, fullQueue = [], show = null) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.src = track.url;
+    audio.play().catch(console.error);
+
     setCurrentTrack(track);
     setCurrentShow(show);
     const index = fullQueue.findIndex((t) => t.url === track.url);
@@ -18,14 +40,20 @@ export function AudioPlayerProvider({ children }) {
     setIsPlaying(true);
   };
 
+  const pause = () => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      setIsPlaying(false);
+    }
+  };
+
   const playNext = () => {
     if (!queue.length || !currentTrack) return;
     const index = queue.findIndex((t) => t.url === currentTrack.url);
     const next = queue[index + 1] || null;
     if (next) {
-      setCurrentTrack(next);
-      setNextTrack(queue[index + 2] || null);
-      setIsPlaying(true);
+      playTrack(next, queue, currentShow);
     } else {
       setCurrentTrack(null);
       setNextTrack(null);
@@ -39,9 +67,7 @@ export function AudioPlayerProvider({ children }) {
     const index = queue.findIndex((t) => t.url === currentTrack.url);
     const prev = queue[index - 1] || null;
     if (prev) {
-      setCurrentTrack(prev);
-      setNextTrack(queue[index] || null);
-      setIsPlaying(true);
+      playTrack(prev, queue, currentShow);
     }
   };
 
@@ -54,6 +80,7 @@ export function AudioPlayerProvider({ children }) {
         isPlaying,
         setIsPlaying,
         playTrack,
+        pause,       // ✅ Now exposed
         playNext,
         playPrev,
       }}

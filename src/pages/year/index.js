@@ -35,7 +35,7 @@ export async function getServerSideProps() {
 
 export default function YearPage({ yearsData = [] }) {
   const [sortBy, setSortBy] = useState("year");
-  const [sortAsc, setSortAsc] = useState(false); // descending by default
+  const [sortAsc, setSortAsc] = useState(false);
 
   const sortedData = [...yearsData].sort((a, b) => {
     let cmp = 0;
@@ -48,7 +48,7 @@ export default function YearPage({ yearsData = [] }) {
     if (col === sortBy) setSortAsc(!sortAsc);
     else {
       setSortBy(col);
-      setSortAsc(true);
+      setSortAsc(false);
     }
   };
 
@@ -68,71 +68,56 @@ export default function YearPage({ yearsData = [] }) {
         <link rel="canonical" href="https://fouldomain.com/year" />
       </Head>
 
-      <main className="min-h-screen bg-gray-950 text-white font-sans px-6 py-12">
-        <div className="max-w-5xl mx-auto space-y-12">
-          <div className="text-center">
-            <h1 className="text-indigo-400 text-6xl font-extrabold tracking-wide relative inline-block">
-              PHISH
-              <span
-                className="block h-1 bg-indigo-300 rounded-full mx-auto mt-2 w-24"
-                aria-hidden="true"
-              />
-            </h1>
-          </div>
+      <main className="min-h-screen bg-gray-950 text-gray-100 font-mono px-4 py-20">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-wide text-center">
+            Shows by Year
+          </h1>
 
-          <h2 className="text-center text-white text-4xl font-bold">Shows by Year</h2>
-
-          <div className="overflow-x-auto rounded-lg shadow-md border border-gray-700">
-            <table
-              className="w-full border-collapse rounded-lg"
-              style={{ tableLayout: "fixed" }}
-            >
+          <div className="overflow-x-auto border border-gray-800 rounded mt-10">
+            <table className="min-w-full text-sm sm:text-base text-left border-collapse table-fixed">
               <thead>
-                <tr className="bg-indigo-600 text-left text-indigo-100 uppercase tracking-wide select-none text-sm font-semibold border-b border-indigo-500 cursor-pointer">
+                <tr className="bg-gray-800 text-gray-200">
                   <th
-                    style={{ width: "20%" }}
-                    className="px-4 py-3 border border-indigo-700"
                     onClick={() => handleSort("year")}
+                    className="w-24 px-4 py-3 border-b border-gray-700 text-center cursor-pointer"
                   >
                     Year<SortArrow column="year" />
                   </th>
                   <th
-                    style={{ width: "25%" }}
-                    className="px-4 py-3 border border-indigo-700"
                     onClick={() => handleSort("show_count")}
+                    className="w-40 px-4 py-3 border-b border-gray-700 text-center cursor-pointer"
                   >
                     Shows Played<SortArrow column="show_count" />
                   </th>
                   <th
-                    style={{ width: "25%" }}
-                    className="px-4 py-3 border border-indigo-700"
                     onClick={() => handleSort("unique_songs")}
+                    className="w-48 px-4 py-3 border-b border-gray-700 text-center cursor-pointer"
                   >
-                    Unique Songs Played<SortArrow column="unique_songs" />
+                    Unique Songs<SortArrow column="unique_songs" />
                   </th>
                   <th
-                    style={{ width: "30%" }}
-                    className="px-4 py-3 border border-indigo-700"
                     onClick={() => handleSort("shows_with_audio")}
+                    className="w-56 px-4 py-3 border-b border-gray-700 text-center cursor-pointer"
                   >
-                    Shows with Audio Available<SortArrow column="shows_with_audio" />
+                    Shows with Audio<SortArrow column="shows_with_audio" />
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {sortedData.map(({ year, show_count, unique_songs, shows_with_audio }) => (
+                {sortedData.map(({ year, show_count, unique_songs, shows_with_audio }, index) => (
                   <tr
                     key={year}
-                    className="even:bg-gray-900 odd:bg-gray-800 hover:bg-indigo-500 hover:text-white cursor-pointer transition-colors duration-200"
+                    className={index % 2 === 0 ? "bg-gray-900/50" : "bg-gray-900/30"}
                   >
-                    <td className="border border-indigo-700 px-4 py-3 font-semibold">
+                    <td className="px-4 py-2 border-t border-gray-800 text-center font-semibold">
                       <Link href={`/year/${year}`} className="text-indigo-300 hover:underline">
                         {year}
                       </Link>
                     </td>
-                    <td className="border border-indigo-700 px-4 py-3">{show_count}</td>
-                    <td className="border border-indigo-700 px-4 py-3">{unique_songs}</td>
-                    <td className="border border-indigo-700 px-4 py-3">{shows_with_audio}</td>
+                    <td className="px-4 py-2 border-t border-gray-800 text-center">{show_count}</td>
+                    <td className="px-4 py-2 border-t border-gray-800 text-center">{unique_songs}</td>
+                    <td className="px-4 py-2 border-t border-gray-800 text-center">{shows_with_audio}</td>
                   </tr>
                 ))}
               </tbody>

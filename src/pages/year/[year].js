@@ -3,18 +3,19 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import axios from "axios";
-import { useAudioPlayer } from "@/components/AudioPlayerContext"; // adjust path if needed
+import { useAudioPlayer } from "@/components/AudioPlayerContext";
 
 export default function YearPage() {
   const router = useRouter();
   const { year } = router.query;
 
-  const { playTrack } = useAudioPlayer();
+  const { playTrack, currentTrack, queue, stop, isPlaying } = useAudioPlayer();
 
   const [shows, setShows] = useState([]);
   const [visibleCount, setVisibleCount] = useState(25);
   const [sortField, setSortField] = useState("showDate");
   const [sortAsc, setSortAsc] = useState(false);
+  const [activeShowId, setActiveShowId] = useState(null);
   const loaderRef = useRef(null);
 
   useEffect(() => {
@@ -39,9 +40,6 @@ export default function YearPage() {
 
     if (sortField === "showDate") {
       return new Date(a) - new Date(b);
-    }
-    if (sortField === "has_audio") {
-      return a === b ? 0 : a ? -1 : 1;
     }
     if (sortField === "total_duration") {
       return a - b;
@@ -88,29 +86,45 @@ export default function YearPage() {
     const h = Math.floor(secs / 3600);
     const m = Math.floor((secs % 3600) / 60);
     const s = secs % 60;
-    if (h > 0) {
-      return `${h}:${m.toString().padStart(2, "0")}:${s
-        .toString()
-        .padStart(2, "0")}`;
-    }
-    return `${m}:${s.toString().padStart(2, "0")}`;
+    return h > 0
+      ? `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`
+      : `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const isShowPlaying = (showId) => {
+    if (!queue?.length || !currentTrack || !isPlaying) return false;
+
+    const show = shows.find((s) => s.id === showId);
+    if (!show) return false;
+
+    const showDate = new Date(show.showDate).toISOString().split("T")[0];
+    const queueDate = new Date(queue[0]?.date).toISOString().split("T")[0];
+
+    return show.venue === queue[0]?.venue && showDate === queueDate;
   };
 
   async function playShow(showId) {
     try {
+      setActiveShowId(showId);
       const res = await axios.get(`/api/shows/${showId}/setlist`);
       const setlist = res.data;
+      const show = shows.find((s) => s.id === showId);
 
-      if (!setlist.length) {
-        alert("No playable audio tracks found for this show.");
-        return;
-      }
+      const showMeta = {
+        venue: show?.venue || "",
+        city: show?.city || "",
+        state: show?.state || "",
+        date: show?.showDate
+          ? new Date(show.showDate).toISOString().split("T")[0]
+          : "",
+      };
 
       const tracksWithAudio = setlist
         .filter((track) => track.audioUrl)
         .map((track) => ({
           title: track.song,
           url: track.audioUrl,
+          ...showMeta,
         }));
 
       if (tracksWithAudio.length === 0) {
@@ -118,12 +132,12 @@ export default function YearPage() {
         return;
       }
 
-      playTrack(tracksWithAudio[0], tracksWithAudio);
+      playTrack(tracksWithAudio[0], tracksWithAudio, showMeta);
     } catch (error) {
       console.error("Error fetching show setlist for playback", error);
       alert("Error loading show audio.");
     }
-  }
+  };
 
   const handleSort = (field) => {
     if (field === sortField) {
@@ -156,109 +170,80 @@ export default function YearPage() {
         <link rel="canonical" href={canonicalUrl} />
       </Head>
 
-      <div className="min-h-screen bg-gray-950 text-white font-sans px-6 py-12">
-        <div className="max-w-5xl mx-auto flex flex-col items-center">
-          <div className="text-center mb-6">
-            <h1 className="text-indigo-400 text-6xl sm:text-7xl font-extrabold tracking-wide relative inline-block">
-              PHISH
-              <span
-                className="block h-1 bg-indigo-300 rounded-full mx-auto mt-2 w-24"
-                aria-hidden="true"
-              />
-            </h1>
-          </div>
+      <main className="min-h-screen bg-gray-950 text-gray-100 font-mono px-4 py-20">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-wide text-center mb-10">
+            Shows from {year}
+          </h1>
 
-          <h2 className="text-6xl sm:text-7xl font-extrabold text-indigo-400 drop-shadow-md mb-4 text-center">
-            {year}
-          </h2>
-          <p className="italic text-sm text-indigo-300 mb-8 max-w-xl text-center">
-            Each show from this year — unrolled below.
-          </p>
-
-          <div className="w-full overflow-x-auto rounded-lg shadow-md border border-gray-700">
-            <table className="table-auto border-collapse w-full text-indigo-100 text-sm sm:text-lg">
+          <div className="overflow-x-auto border border-gray-800 rounded">
+            <table className="min-w-full text-sm sm:text-base text-left border-collapse table-fixed font-mono">
               <thead>
-                <tr className="bg-indigo-600 text-white h-12 select-none">
-                  <th
-                    className="px-4 border border-indigo-700 text-center cursor-pointer"
-                    onClick={() => handleSort("showDate")}
-                    title="Sort by Date"
-                  >
+                <tr className="bg-gray-800 text-gray-200">
+                  <th onClick={() => handleSort("showDate")} className="w-32 px-4 py-3 border-b border-gray-700 text-center cursor-pointer">
                     Date<SortArrow column="showDate" />
                   </th>
-                  <th
-                    className="px-4 border border-indigo-700 text-center cursor-pointer"
-                    onClick={() => handleSort("venue")}
-                    title="Sort by Venue"
-                  >
+                  <th onClick={() => handleSort("venue")} className="w-48 px-4 py-3 border-b border-gray-700 text-center cursor-pointer">
                     Venue<SortArrow column="venue" />
                   </th>
-                  <th
-                    className="hidden sm:table-cell px-4 border border-indigo-700 text-center cursor-pointer"
-                    onClick={() => handleSort("city")}
-                    title="Sort by City"
-                  >
+                  <th onClick={() => handleSort("city")} className="hidden sm:table-cell w-36 px-4 py-3 border-b border-gray-700 text-center cursor-pointer">
                     City<SortArrow column="city" />
                   </th>
-                  <th
-                    className="hidden sm:table-cell px-4 border border-indigo-700 text-center cursor-pointer"
-                    onClick={() => handleSort("state")}
-                    title="Sort by State"
-                  >
+                  <th onClick={() => handleSort("state")} className="hidden sm:table-cell w-24 px-4 py-3 border-b border-gray-700 text-center cursor-pointer">
                     State<SortArrow column="state" />
                   </th>
-                  <th
-                    className="px-4 border border-indigo-700 text-center cursor-pointer"
-                    onClick={() => handleSort("total_duration")}
-                    title="Sort by Duration"
-                  >
+                  <th onClick={() => handleSort("total_duration")} className="w-32 px-4 py-3 border-b border-gray-700 text-center cursor-pointer">
                     Duration<SortArrow column="total_duration" />
                   </th>
-                  <th
-                    className="px-4 border border-indigo-700 text-center cursor-pointer"
-                    onClick={() => handleSort("has_audio")}
-                    title="Sort by Audio Availability"
-                  >
-                    Audio<SortArrow column="has_audio" />
+                  <th className="w-24 px-4 py-3 border-b border-gray-700 text-center">
+                    Play
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {visibleShows.map((show) => {
                   const date = new Date(show.showDate).toISOString().split("T")[0];
+                  const playing = activeShowId === show.id;
+
                   return (
                     <tr
                       key={show.id}
-                      className="hover:bg-indigo-500 hover:text-white transition-colors duration-150 even:bg-gray-900/20 odd:bg-gray-900/10 cursor-pointer"
+                      className={show.id % 2 === 0 ? "bg-gray-900/50" : "bg-gray-900/30"}
                     >
-                      <td className="py-2 px-4 border border-indigo-700 whitespace-nowrap">
-                        <Link
-                          href={`/shows/${date}`}
-                          className="text-indigo-300 hover:text-indigo-100 hover:underline"
-                        >
+                      <td className="px-4 py-2 border-t border-gray-800 text-center">
+                        <Link href={`/shows/${date}`} className="text-indigo-300 hover:underline">
                           {date}
                         </Link>
                       </td>
-                      <td className="py-2 px-4 border border-indigo-700">{show.venue}</td>
-                      <td className="hidden sm:table-cell py-2 px-4 border border-indigo-700">{show.city}</td>
-                      <td className="hidden sm:table-cell py-2 px-4 border border-indigo-700">{show.state}</td>
-                      <td className="py-2 px-4 border border-indigo-700 text-center">
+                      <td className="px-4 py-2 border-t border-gray-800 text-center">{show.venue}</td>
+                      <td className="hidden sm:table-cell px-4 py-2 border-t border-gray-800 text-center">{show.city}</td>
+                      <td className="hidden sm:table-cell px-4 py-2 border-t border-gray-800 text-center">{show.state}</td>
+                      <td className="px-4 py-2 border-t border-gray-800 text-center">
                         {formatDuration(show.total_duration)}
                       </td>
-                      <td className="py-2 px-4 border border-indigo-700 text-center">
+                      <td className="px-4 py-2 border-t border-gray-800 text-center">
                         {show.has_audio ? (
-                          <button
-                            onClick={() => playShow(show.id)}
-                            title="Play Show Audio"
-                            aria-label={`Play audio for show on ${show.showDate}`}
-                            className="hover:text-yellow-400 transition"
-                          >
-                            🎵
-                          </button>
+                          playing ? (
+                            <button
+                              onClick={stop}
+                              title="Stop playback"
+                              aria-label={`Stop playback for show on ${show.showDate}`}
+                              className="text-yellow-400 hover:text-yellow-200 transition"
+                            >
+                              ⏸
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => playShow(show.id)}
+                              title="Play show audio"
+                              aria-label={`Play audio for show on ${show.showDate}`}
+                              className="text-indigo-400 hover:text-indigo-200 transition"
+                            >
+                              ▶
+                            </button>
+                          )
                         ) : (
-                          <span title="No audio" role="img" aria-label="No audio">
-                            ❌
-                          </span>
+                          <span className="text-gray-600">—</span>
                         )}
                       </td>
                     </tr>
@@ -275,7 +260,7 @@ export default function YearPage() {
             Every show a chapter, every jam a paragraph.
           </p>
         </div>
-      </div>
+      </main>
     </>
   );
 }
