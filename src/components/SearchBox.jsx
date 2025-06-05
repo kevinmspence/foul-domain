@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, forwardRef } from 'react';
 import Link from 'next/link';
 
-export default function SearchBox({ containerClass = '' }) {
+const SearchBox = forwardRef(function SearchBox({ containerClass = '' }, inputRef) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -54,6 +54,7 @@ export default function SearchBox({ containerClass = '' }) {
   return (
     <div className={`relative ${containerClass}`} ref={boxRef}>
       <input
+        ref={inputRef}
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -82,4 +83,6 @@ export default function SearchBox({ containerClass = '' }) {
       )}
     </div>
   );
-}
+});
+
+export default SearchBox;

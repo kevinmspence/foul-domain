@@ -1,7 +1,17 @@
+import { useRef, useEffect } from 'react';
 import Head from 'next/head';
 import SearchBox from '@/components/SearchBox';
 
 export default function Home() {
+  const searchRef = useRef(null);
+
+  useEffect(() => {
+    if (searchRef.current) {
+      searchRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => searchRef.current.focus(), 600);
+    }
+  }, []);
+
   return (
     <>
       <Head>
@@ -42,7 +52,14 @@ export default function Home() {
           </p>
 
           {/* Search */}
-          <SearchBox containerClass="w-full max-w-md mt-4" />
+          <SearchBox containerClass="w-full max-w-md mt-4" ref={searchRef} />
+
+          {/* Example searches */}
+          <p className="mt-3 text-sm text-gray-500 font-mono italic">
+            For example, try <span className="text-indigo-400">NYE 95</span>,{' '}
+            <span className="text-indigo-400">Lemonwheel</span>, or{' '}
+            <span className="text-indigo-400">Baker’s Dozen</span>.
+          </p>
         </div>
       </main>
     </>
