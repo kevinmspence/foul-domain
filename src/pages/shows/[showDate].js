@@ -1,9 +1,7 @@
 // pages/shows/[showDate].js
-
 import Head from 'next/head';
 import SetScroll from '@/components/SetScroll';
 import ShowNotes from '@/components/ShowNotes';
-import Image from 'next/image';
 import Link from 'next/link';
 import sql from '@/lib/sql';
 
@@ -106,98 +104,85 @@ export default function SetlistPage({ show, prevShow, nextShow }) {
     ?.replace(/â€“/g, '–')
     ?.replace(/â€”/g, '—') || null;
 
-  const [year, month, day] = show.showDate.split('-');
-  const monthNames = [
-    'January','February','March','April','May','June',
-    'July','August','September','October','November','December'
-  ];
-  const formattedDate = `${monthNames[parseInt(month, 10) - 1]} ${parseInt(day, 10)}, ${year}`;
-  const title = `${show.venue} – ${formattedDate} | Foul Domain`;
-  const description = `See the full Phish setlist from ${formattedDate} at ${show.venue} in ${show.city}, ${show.state}.`;
-  const canonicalUrl = `https://fouldomain.com/shows/${show.showDate}`;
+  const formattedDate = new Date(show.showDate).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const showInfo = {
+    venue: show.venue,
+    city: show.city,
+    state: show.state,
+    date: formattedDate,
+  };
 
   return (
     <>
       <Head>
-        <title>{title}</title>
-        <meta name="description" content={description} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:type" content="website" />
-        <link rel="canonical" href={canonicalUrl} />
-        <link
-          rel="preload"
-          as="image"
-          href="/venues/default.webp"
-          type="image/webp"
+        <title>{`${show.venue} – ${formattedDate} | Foul Domain`}</title>
+        <meta
+          name="description"
+          content={`See the full Phish setlist from ${formattedDate} at ${show.venue} in ${show.city}, ${show.state}.`}
         />
       </Head>
 
-      <div
-        className="min-h-screen text-yellow-100 font-ticket px-6 py-12"
-        style={{
-          backgroundImage: "url('/venues/default.webp')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed',
-        }}
-      >
-        <div className="flex justify-center mb-0 animate-fade-slide">
-          <Image
-            src="/phish-banner.webp"
-            alt="PHISH Banner"
-            width={400}
-            height={100}
-            priority
-            sizes="(max-width: 600px) 100vw, 400px"
-            className="drop-shadow-[0_0_25px_rgba(255,225,150,0.5)]"
-          />
-        </div>
+      <main className="min-h-screen px-4 sm:px-6 lg:px-8 py-10 bg-gray-950 text-white pb-[6rem]">
+        <div className="max-w-5xl mx-auto space-y-8">
+          <h1 className="text-5xl font-bold text-indigo-400 text-center mb-6 tracking-wide font-sans">
+            PHISH
+          </h1>
 
-        <div className="text-center mb-4 drop-shadow-[0_0_20px_rgba(255,255,200,0.6)]">
-          <h2 className="text-2xl sm:text-3xl -mt-2 text-yellow-200">{show.venue}</h2>
-          <h3 className="text-xl text-yellow-300 italic mt-1">
-            {show.city}, {show.state} — {formattedDate}
-          </h3>
-        </div>
-
-        <div className="w-full flex flex-col sm:flex-row sm:justify-center sm:gap-4 sm:space-x-4">
-          {setGroups.map(({ title, entries }, idx) => (
-            <div key={title} className="flex-1 max-w-[600px] sm:px-2">
-              <SetScroll
-                title={title}
-                entries={entries}
-                index={idx}
-                total={setGroups.length}
-              />
-            </div>
-          ))}
-        </div>
-
-        {showNotes && <ShowNotes notes={showNotes} />}
-
-        {(prevShow || nextShow) && (
-          <div className="mt-12 flex justify-center gap-6">
-            {prevShow && (
-              <Link
-                href={`/shows/${prevShow}`}
-                className="px-6 py-3 rounded-lg border-2 border-yellow-300 text-yellow-200 hover:bg-yellow-200 hover:text-black transition font-rock text-lg"
-              >
-                ⬅ Previous Show
-              </Link>
-            )}
-            {nextShow && (
-              <Link
-                href={`/shows/${nextShow}`}
-                className="px-6 py-3 rounded-lg border-2 border-yellow-300 text-yellow-200 hover:bg-yellow-200 hover:text-black transition font-rock text-lg"
-              >
-                Next Show ➡
-              </Link>
-            )}
+          <div className="text-center mb-6">
+            <h2 className="text-3xl font-bold text-white">{show.venue}</h2>
+            <p className="text-gray-300 text-lg mt-1">
+              {show.city}, {show.state} — {formattedDate}
+            </p>
           </div>
-        )}
-      </div>
+
+          <div className="flex justify-center flex-col sm:flex-row sm:flex-wrap sm:gap-6">
+            {setGroups.map(({ title, entries }) => (
+              <div
+                key={title}
+                className="flex-1 min-w-[250px] sm:max-w-[calc(50%-12px)] lg:max-w-[calc(33%-16px)]"
+              >
+                <SetScroll title={title} entries={entries} showInfo={showInfo} />
+              </div>
+            ))}
+          </div>
+
+          {showNotes && (
+            <div className="bg-white/5 border border-white/10 rounded-lg p-4 text-sm text-white/80">
+              <strong className="block text-white font-semibold mb-2">Show Notes</strong>
+              <p className="whitespace-pre-line">{showNotes}</p>
+            </div>
+          )}
+
+          {(prevShow || nextShow) && (
+            <div className="flex justify-between items-center pt-8 border-t border-white/10">
+              {prevShow ? (
+                <Link
+                  href={`/shows/${prevShow}`}
+                  className="text-indigo-400 hover:underline"
+                >
+                  ⬅ Previous Show
+                </Link>
+              ) : (
+                <span />
+              )}
+
+              {nextShow && (
+                <Link
+                  href={`/shows/${nextShow}`}
+                  className="text-indigo-400 hover:underline"
+                >
+                  Next Show ➡
+                </Link>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
     </>
   );
 }

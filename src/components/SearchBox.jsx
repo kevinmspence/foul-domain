@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 
-export default function SearchBox() {
+export default function SearchBox({ containerClass = '' }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -52,18 +52,18 @@ export default function SearchBox() {
   }, [query]);
 
   return (
-    <div className="relative w-full max-w-xl mx-auto" ref={boxRef}>
+    <div className={`relative ${containerClass}`} ref={boxRef}>
       <input
         type="text"
-        className="w-full px-5 py-3 text-lg font-ticket rounded-lg border-2 border-yellow-400 bg-yellow-50 text-black shadow-[0_0_12px_rgba(255,240,170,0.6)] focus:outline-none focus:ring-2 focus:ring-yellow-300 transition"
-        placeholder="Search for a song, show, or venue..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setShowDropdown(true)}
+        placeholder="Search for a song, show, or venue..."
+        className="w-full px-4 py-2 text-sm sm:text-base text-gray-100 bg-gray-900 border border-gray-600 focus:outline-none focus:border-indigo-400 font-mono placeholder-gray-500"
       />
 
       {showDropdown && results.length > 0 && (
-        <ul className="absolute z-50 w-full mt-2 bg-yellow-100 border-2 border-yellow-400 rounded-lg shadow-xl max-h-80 overflow-auto font-ticket text-black text-base animate-fade-slide">
+        <ul className="absolute left-0 right-0 mt-1 bg-gray-900 border border-gray-700 rounded-md shadow-md z-10 max-h-64 overflow-y-auto text-left text-sm">
           {results.map((result) => (
             <li key={result.id}>
               <Link
@@ -72,7 +72,7 @@ export default function SearchBox() {
                     ? `/songs/${result.slug}`
                     : `/shows/${result.slug}`
                 }
-                className="block px-4 py-3 hover:bg-yellow-200 hover:text-black transition-all border-b border-yellow-300 last:border-b-0"
+                className="block px-4 py-2 hover:bg-indigo-800 hover:text-white transition"
               >
                 {result.label}
               </Link>

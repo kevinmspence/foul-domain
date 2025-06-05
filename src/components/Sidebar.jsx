@@ -1,5 +1,6 @@
 // components/Sidebar.jsx
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import {
   Menu,
   X,
@@ -29,7 +30,7 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
       setIsDesktop(window.innerWidth >= 768);
     }
 
-    handleResize(); // initialize
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -61,8 +62,8 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
         sidebarRef.current &&
         !sidebarRef.current.contains(event.target)
       ) {
-        toggleSidebar(true); // collapse desktop
-        setIsMobileOpen(false); // close mobile
+        toggleSidebar(true);
+        setIsMobileOpen(false);
         setSearchOpen(false);
         setSearchTerm('');
         setSearchResults([]);
@@ -97,7 +98,6 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
         ${collapsed ? 'md:w-16' : 'md:w-64'} 
         w-64`}
     >
-      {/* Close button only on mobile */}
       <div className="p-4 flex justify-end md:hidden">
         <button onClick={() => setIsMobileOpen(false)}>
           <X size={20} />
@@ -114,12 +114,11 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
         {[
           { href: '/', icon: House, label: 'Home' },
           { href: '/shows/recent', icon: Sparkle, label: 'Most Recent Show' },
-          { href: '/book', icon: BookOpen, label: 'Read the Book' },
           { href: '/year', icon: CalendarDays, label: 'Shows' },
           { href: '/songs', icon: Music, label: 'Songs' },
           { href: '/contact', icon: Mail, label: 'Contact' }
         ].map(({ href, icon: Icon, label }) => (
-          <a
+          <Link
             key={label}
             href={href}
             title={label}
@@ -133,7 +132,7 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
             >
               {label}
             </span>
-          </a>
+          </Link>
         ))}
 
         <button
@@ -165,7 +164,7 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
               <ul className="absolute left-0 right-0 bg-gray-800 border border-gray-700 mt-1 rounded shadow-lg z-50 max-h-64 overflow-y-auto">
                 {searchResults.map((result) => (
                   <li key={result.id}>
-                    <a
+                    <Link
                       href={
                         result.type === 'song'
                           ? `/songs/${result.slug}`
@@ -182,7 +181,7 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
                       }}
                     >
                       {result.label}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>

@@ -1,9 +1,12 @@
+// pages/_app.js
 import "@/styles/globals.css";
 import Head from "next/head";
 import Layout from "@/components/Layout";
 import Script from "next/script";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
+import { AudioPlayerProvider } from "@/components/AudioPlayerContext";
+import NowPlayingBar from "@/components/NowPlayingBar";
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
@@ -46,9 +49,12 @@ export default function App({ Component, pageProps }) {
         }}
       />
 
-      <Layout>
-        <Component {...pageProps} />
-      </Layout>
+      <AudioPlayerProvider>
+        <Layout>
+          <Component {...pageProps} />
+          <NowPlayingBar />
+        </Layout>
+      </AudioPlayerProvider>
     </>
   );
 }

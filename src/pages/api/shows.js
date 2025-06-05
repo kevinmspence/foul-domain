@@ -17,27 +17,35 @@ export default async function handler(req, res) {
       const startDate = `${year}-01-01`;
       const endDate = `${parseInt(year) + 1}-01-01`;
 
+      // Updated query: add total_duration and has_audio per show
       const rows = await sql`
         SELECT 
-          "showid" AS id, 
-          "showdate" AS "showDate",
-          venue, 
-          city, 
-          state
-        FROM "Show"
-        WHERE "showdate" >= ${startDate} AND "showdate" < ${endDate}
-        ORDER BY "showdate" ASC;
+          s."showid" AS id, 
+          s."showdate" AS "showDate",
+          s.venue, 
+          s.city, 
+          s.state,
+          COALESCE(SUM(se."durationSeconds"), 0) AS total_duration,
+          CASE WHEN COUNT(se."audioUrl") FILTER (WHERE se."audioUrl" IS NOT NULL) > 0 THEN true ELSE false END AS has_audio
+        FROM "Show" s
+        LEFT JOIN "SetlistEntry" se ON se.showid = s.showid
+        WHERE s."showdate" >= ${startDate} AND s."showdate" < ${endDate}
+          AND s."showdate" <= CURRENT_DATE
+        GROUP BY s."showid", s."showdate", s.venue, s.city, s.state
+        ORDER BY s."showdate" ASC;
       `;
 
       console.log(`✅ ${rows.length} rows returned from SQL query`);
       console.log(rows[0]);
 
-      // Optionally ensure showDate is serialized (if it isn't already)
+      // Serialize showDate as YYYY-MM-DD string
       return rows.map(row => ({
         ...row,
         showDate: row.showDate instanceof Date
           ? row.showDate.toISOString().split('T')[0]
-          : row.showDate
+          : row.showDate,
+        total_duration: Number(row.total_duration),
+        has_audio: Boolean(row.has_audio),
       }));
     });
 
