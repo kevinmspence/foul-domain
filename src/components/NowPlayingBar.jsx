@@ -1,41 +1,34 @@
-import { useRef, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAudioPlayer } from './AudioPlayerContext';
 
 export default function NowPlayingBar() {
   const {
     currentTrack,
     currentShow,
-    nextTrack,
     isPlaying,
-    setIsPlaying,
     playNext,
     playPrev,
+    pause,
+    resume,
+    audioRef,
   } = useAudioPlayer();
 
-  const audioRef = useRef(null);
   const [progress, setProgress] = useState(0);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (audio && currentTrack) {
-      audio.src = currentTrack.url;
-      audio.play().catch(() => {});
-      setIsPlaying(true);
-    }
+    if (!audio || !currentTrack) return;
+
+    audio.src = currentTrack.url;
+    audio.play().catch(() => {});
   }, [currentTrack]);
 
   const togglePlay = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (audio.paused) {
-      audio.play();
-      setIsPlaying(true);
-    } else {
-      audio.pause();
-      setIsPlaying(false);
-    }
+    if (!audioRef.current) return;
+    if (isPlaying) pause();
+    else resume();
   };
 
   const handleSeek = (e) => {
@@ -58,7 +51,6 @@ export default function NowPlayingBar() {
     };
 
     const handleEnded = () => {
-      setIsPlaying(false);
       setProgress(0);
       setTime(0);
       playNext();
@@ -83,8 +75,6 @@ export default function NowPlayingBar() {
   return (
     <div className="fixed bottom-0 left-0 right-0 border-t border-gray-300 bg-white shadow-lg z-50 px-4 py-3 text-gray-900">
       <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-3 md:gap-6 justify-between">
-        
-        {/* Left: Song title and location/date */}
         <div className="w-full md:w-1/3 truncate">
           <div className="font-bold text-sm md:text-base truncate">{currentTrack.title}</div>
           {currentShow && (
@@ -94,7 +84,6 @@ export default function NowPlayingBar() {
           )}
         </div>
 
-        {/* Center: Timeline + controls */}
         <div className="w-full md:w-2/3 flex flex-col gap-2">
           <div
             className="h-2 w-full bg-gray-200 rounded cursor-pointer relative overflow-hidden"

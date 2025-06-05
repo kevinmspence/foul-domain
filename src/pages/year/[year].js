@@ -9,13 +9,17 @@ export default function YearPage() {
   const router = useRouter();
   const { year } = router.query;
 
-  const { playTrack, currentTrack, queue, stop, isPlaying } = useAudioPlayer();
+  const {
+    playTrack,
+    currentTrack,
+    queue,
+    nowPlayingShowId,
+  } = useAudioPlayer();
 
   const [shows, setShows] = useState([]);
   const [visibleCount, setVisibleCount] = useState(25);
   const [sortField, setSortField] = useState("showDate");
   const [sortAsc, setSortAsc] = useState(false);
-  const [activeShowId, setActiveShowId] = useState(null);
   const loaderRef = useRef(null);
 
   useEffect(() => {
@@ -91,26 +95,14 @@ export default function YearPage() {
       : `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const isShowPlaying = (showId) => {
-    if (!queue?.length || !currentTrack || !isPlaying) return false;
-
-    const show = shows.find((s) => s.id === showId);
-    if (!show) return false;
-
-    const showDate = new Date(show.showDate).toISOString().split("T")[0];
-    const queueDate = new Date(queue[0]?.date).toISOString().split("T")[0];
-
-    return show.venue === queue[0]?.venue && showDate === queueDate;
-  };
-
   async function playShow(showId) {
     try {
-      setActiveShowId(showId);
       const res = await axios.get(`/api/shows/${showId}/setlist`);
       const setlist = res.data;
       const show = shows.find((s) => s.id === showId);
 
       const showMeta = {
+        id: show.id,
         venue: show?.venue || "",
         city: show?.city || "",
         state: show?.state || "",
@@ -137,7 +129,7 @@ export default function YearPage() {
       console.error("Error fetching show setlist for playback", error);
       alert("Error loading show audio.");
     }
-  };
+  }
 
   const handleSort = (field) => {
     if (field === sortField) {
@@ -203,7 +195,7 @@ export default function YearPage() {
               <tbody>
                 {visibleShows.map((show) => {
                   const date = new Date(show.showDate).toISOString().split("T")[0];
-                  const playing = activeShowId === show.id;
+                  const playing = show.id === nowPlayingShowId;
 
                   return (
                     <tr
@@ -224,19 +216,11 @@ export default function YearPage() {
                       <td className="px-4 py-2 border-t border-gray-800 text-center">
                         {show.has_audio ? (
                           playing ? (
-                            <button
-                              onClick={stop}
-                              title="Stop playback"
-                              aria-label={`Stop playback for show on ${show.showDate}`}
-                              className="text-yellow-400 hover:text-yellow-200 transition"
-                            >
-                              ⏸
-                            </button>
+                            <span className="text-green-400">Now Playing</span>
                           ) : (
                             <button
                               onClick={() => playShow(show.id)}
                               title="Play show audio"
-                              aria-label={`Play audio for show on ${show.showDate}`}
                               className="text-indigo-400 hover:text-indigo-200 transition"
                             >
                               ▶

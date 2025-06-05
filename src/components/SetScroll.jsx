@@ -2,7 +2,13 @@ import React from 'react';
 import { useAudioPlayer } from './AudioPlayerContext';
 
 export default function SetScroll({ title, entries, showInfo }) {
-  const { playTrack, pause, currentTrack, isPlaying } = useAudioPlayer();
+  const {
+    playTrack,
+    pause,
+    resume,
+    isPlaying,
+    currentTrack,
+  } = useAudioPlayer();
 
   const queue = entries
     .filter((e) => !!e.audioUrl)
@@ -27,8 +33,9 @@ export default function SetScroll({ title, entries, showInfo }) {
 
           const handleToggle = () => {
             if (!audioUrl) return;
-            if (isThisTrackPlaying) {
-              pause();
+            if (currentTrack?.url === audioUrl) {
+              if (isPlaying) pause();
+              else resume();
             } else {
               playTrack(
                 { title: entry.song, url: audioUrl },
@@ -56,11 +63,11 @@ export default function SetScroll({ title, entries, showInfo }) {
                 {audioUrl ? (
                   <button
                     onClick={handleToggle}
-                    className="text-indigo-400 hover:text-indigo-200 transition"
-                    title={isThisTrackPlaying ? 'Pause track' : 'Play track'}
+                    className="text-indigo-400 hover:text-indigo-200 transition text-lg"
+                    title={isThisTrackPlaying ? 'Pause' : 'Play'}
                     aria-label={isThisTrackPlaying ? 'Pause track' : 'Play track'}
                   >
-                    {isThisTrackPlaying ? '⏸' : '▶'}
+                    {isThisTrackPlaying ? '❚❚' : '▶'}
                   </button>
                 ) : (
                   <span className="text-sm text-white/40 italic">No audio</span>

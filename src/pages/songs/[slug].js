@@ -22,7 +22,7 @@ export async function getServerSideProps(context) {
   const normalizedSlug = songName.toLowerCase().replace(/[\s/-]/g, '');
 
   const result = await sql`
-    SELECT se.*, s."showdate", s.venue, s.city, s.state
+    SELECT se.*, s."showdate", s.venue, s.city, s.state, s.showid
     FROM "SetlistEntry" se
     JOIN "Show" s ON se."showid" = s."showid"
     WHERE REPLACE(REPLACE(REPLACE(LOWER(se.song), '/', ''), ' ', ''), '-', '') = ${normalizedSlug}
@@ -35,6 +35,7 @@ export async function getServerSideProps(context) {
     ...entry,
     showdate: entry.showdate.toISOString(),
     show: {
+      id: entry.showid,
       showDate: entry.showdate.toISOString(),
       venue: entry.venue,
       city: entry.city,
@@ -58,7 +59,7 @@ export async function getServerSideProps(context) {
 export default function SongPage({ entries, songName, canonicalUrl }) {
   const [sortBy, setSortBy] = useState('date');
   const [sortAsc, setSortAsc] = useState(false);
-  const { playTrack } = useAudioPlayer();
+  const { playTrack, currentTrack, currentShow, isPlaying } = useAudioPlayer();
 
   const sortedEntries = [...entries].sort((a, b) => {
     const dir = sortAsc ? 1 : -1;
@@ -84,6 +85,7 @@ export default function SongPage({ entries, songName, canonicalUrl }) {
 
   const handlePlay = (entry) => {
     const show = {
+      id: entry.show.id,
       venue: entry.show.venue,
       city: entry.show.city,
       state: entry.show.state,
@@ -151,6 +153,7 @@ export default function SongPage({ entries, songName, canonicalUrl }) {
                 <tbody>
                   {sortedEntries.map((entry, index) => {
                     const showUrl = new Date(entry.show.showDate).toISOString().split('T')[0];
+                    const isCurrent = currentTrack?.url === entry.audioUrl && isPlaying;
                     return (
                       <tr
                         key={index}
@@ -175,14 +178,18 @@ export default function SongPage({ entries, songName, canonicalUrl }) {
                         </td>
                         <td className="px-4 py-2 border-t border-gray-800 text-center">
                           {entry.audioUrl ? (
-                            <button
-                              onClick={() => handlePlay(entry)}
-                              className="text-indigo-400 hover:text-indigo-200 transition"
-                              title="Play track"
-                              aria-label="Play track"
-                            >
-                              ▶
-                            </button>
+                            isCurrent ? (
+                              <span className="text-green-400">Now Playing</span>
+                            ) : (
+                              <button
+                                onClick={() => handlePlay(entry)}
+                                className="text-indigo-400 hover:text-indigo-200 transition"
+                                title="Play track"
+                                aria-label="Play track"
+                              >
+                                ▶
+                              </button>
+                            )
                           ) : (
                             <span className="text-gray-600">—</span>
                           )}
