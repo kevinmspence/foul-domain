@@ -1,24 +1,40 @@
 import CreatePlaylistForm from "./CreatePlaylistForm";
+import { toast } from "react-hot-toast";
 
 export default function PlaylistPickerModal({ playlists, entryId, onClose, onAdd }) {
   const handleSelect = async (playlistId) => {
+    toast("🎯 Attempting to add to playlist...");
+
     try {
       const res = await fetch(`/api/playlists/${playlistId}/entries`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ entryId }),
+        body: JSON.stringify({ entryId: Number(entryId) }), // ensure numeric
       });
 
+      console.log("🔁 Response status:", res.status);
+
       const data = await res.json();
+
       if (res.ok) {
+        toast.success("✅ Added to playlist");
         onAdd?.();
         onClose();
+      } else if (res.status === 409) {
+        toast("⚠️ Already in playlist", {
+          icon: "⚠️",
+          style: {
+            background: "#1f2937",
+            color: "#fff",
+          },
+        });
       } else {
-        alert(`⚠️ Error: ${data.error}`);
+        console.error("❌ Error adding:", data);
+        toast.error(`❌ ${data.error || "Failed to add to playlist"}`);
       }
     } catch (err) {
-      alert("❌ Failed to add to playlist");
-      console.error(err);
+      console.error("❌ Network error:", err);
+      toast.error("❌ Network error");
     }
   };
 

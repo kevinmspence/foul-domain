@@ -4,24 +4,33 @@ import sql from "@/lib/sql";
 
 export default async function handler(req, res) {
   const session = await getServerSession(req, res, authOptions);
-  console.log("🧪 Session object:", session);
+  if (!session) return res.status(401).json({ error: "Unauthorized" });
 
-  if (!session?.user?.id) {
-    console.warn("🔒 No session found");
-    return res.status(401).json({ error: "Not authenticated" });
-  }
+  const userId = session.user.id;
+  const showId = parseInt(req.query.showId);
 
-  const { showId } = req.query;
+  if (!showId) return res.status(400).json({ error: "Missing or invalid showId" });
 
   try {
-    const result = await sql`
-      SELECT 1 FROM "FavoriteShow"
-      WHERE "userid" = ${session.user.id} AND "showid" = ${+showId};
-    `;
+    if (req.method === "GET") {
+      const [row] = await sql`
+        SELECT 1 FROM "FavoriteShow"
+        WHERE userid = ${userId} AND showid = ${showId};
+      `;
+      return res.status(200).json({ favorited: !!row });
+    }
 
-    res.status(200).json({ favorited: result.length > 0 });
+    if (req.method === "DELETE") {
+      await sql`
+        DELETE FROM "FavoriteShow"
+        WHERE userid = ${userId} AND showid = ${showId};
+      `;
+      return res.status(200).json({ success: true });
+    }
+
+    return res.status(405).json({ error: "Method not allowed" });
   } catch (err) {
-    console.error("❌ Error checking favorite status:", err);
-    res.status(500).json({ error: "Database error" });
+    console.error("❌ Failed to load favorite status:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 }

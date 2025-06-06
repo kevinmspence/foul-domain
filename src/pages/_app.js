@@ -79,7 +79,14 @@ export default function App({ Component, pageProps }) {
       <SessionProvider>
         <AudioPlayerProvider>
           <Layout>
-            <Toaster position="top-right" />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                style: {
+                  zIndex: 9999,
+                },
+              }}
+            />
             <div className="p-4 text-right">
               <AuthStatus />
             </div>

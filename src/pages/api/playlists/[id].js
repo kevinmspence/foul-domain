@@ -52,6 +52,36 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true });
     }
 
+    if (req.method === "POST") {
+      const { entryId } = req.body;
+
+      if (!entryId || typeof entryId !== "number") {
+        return res.status(400).json({ error: "Missing or invalid entryId" });
+      }
+
+      // Optional: check if entry already exists
+      const existing = await sql`
+        SELECT 1 FROM "PlaylistEntry"
+        WHERE "playlistid" = ${playlistId} AND "entryid" = ${entryId};
+      `;
+      if (existing.length > 0) {
+        return res.status(409).json({ error: "Already in playlist" });
+      }
+
+      // Find the next position
+      const [{ count }] = await sql`
+        SELECT COUNT(*)::int as count FROM "PlaylistEntry"
+        WHERE "playlistid" = ${playlistId};
+      `;
+
+      await sql`
+        INSERT INTO "PlaylistEntry" ("playlistid", "entryid", "position")
+        VALUES (${playlistId}, ${entryId}, ${count});
+      `;
+
+      return res.status(201).json({ success: true });
+    }
+
     if (req.method === "DELETE") {
       await sql`
         DELETE FROM "PlaylistEntry" WHERE playlistid = ${playlistId};

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import {
   Menu,
   X,
@@ -8,8 +9,10 @@ import {
   Music,
   Mail,
   Search,
-  Sparkle
+  Sparkle,
+  User,
 } from 'lucide-react';
+import { useSession, signIn } from 'next-auth/react';
 
 export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsMobileOpen }) {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -20,6 +23,9 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
 
   const sidebarRef = useRef(null);
   const searchRef = useRef(null);
+  const router = useRouter();
+
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     setIsMounted(true);
@@ -83,10 +89,6 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
     }
   };
 
-  if (!isMounted) return null;
-
-  const shouldCollapseText = collapsed && isDesktop;
-
   const handleLinkClick = () => {
     if (window.innerWidth < 768) {
       setIsMobileOpen(false);
@@ -97,6 +99,10 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
     }
   };
 
+  if (!isMounted) return null;
+
+  const shouldCollapseText = collapsed && isDesktop;
+
   return (
     <div
       ref={sidebarRef}
@@ -106,7 +112,7 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
         ${collapsed ? 'md:w-16' : 'md:w-64'} 
         w-64`}
     >
-      {/* Mobile close button (top-left) */}
+      {/* Mobile close button */}
       <div className="absolute top-4 left-4 md:hidden z-50">
         <button
           onClick={() => setIsMobileOpen(false)}
@@ -124,7 +130,32 @@ export default function Sidebar({ collapsed, toggleSidebar, isMobileOpen, setIsM
         </button>
       </div>
 
-      <nav className="flex flex-col gap-4 p-4 mt-12 md:mt-0">
+      {/* Login/Profile button */}
+      <button
+        onClick={() => {
+          if (status === 'authenticated') {
+            handleLinkClick();
+            router.push('/profile').then(() => {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+          } else {
+            signIn('google');
+          }
+        }}
+        className="w-full flex items-center gap-3 p-4 text-white hover:text-indigo-300 transition border-b border-gray-800"
+        title={status === 'authenticated' ? 'Your Profile' : 'Sign in'}
+      >
+        <User size={20} />
+        {!shouldCollapseText && (
+          <span className="text-sm">
+            {status === 'authenticated'
+              ? session.user.name || 'Your Profile'
+              : 'Sign in'}
+          </span>
+        )}
+      </button>
+
+      <nav className="flex flex-col gap-4 p-4 mt-4">
         {[
           { href: '/', icon: House, label: 'Home' },
           { href: '/shows/recent', icon: Sparkle, label: 'Most Recent Show' },
