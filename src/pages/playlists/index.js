@@ -1,72 +1,125 @@
-// pages/playlists/index.js
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../api/auth/[...nextauth]";
-import Head from "next/head";
-import Link from "next/link";
+import { useSession, signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
+import Head from "next/head";
+import CreatePlaylistForm from "@/components/CreatePlaylistForm";
 
-export async function getServerSideProps(context) {
-  const session = await getServerSession(context.req, context.res, authOptions);
-  if (!session) {
-    return { redirect: { destination: "/auth/signin", permanent: false } };
-  }
-
-  return { props: {} };
-}
-
-export default function PlaylistManagerPage() {
+export default function PlaylistsPage() {
+  const { data: session, status } = useSession();
   const [playlists, setPlaylists] = useState([]);
+  const [renamingId, setRenamingId] = useState(null);
+  const [renameValue, setRenameValue] = useState("");
+
+  const fetchPlaylists = async () => {
+    const res = await fetch("/api/playlists");
+    const data = await res.json();
+    console.log("📥 fetched playlists:", data);
+    console.log("🎶 Playlist entry details:", data);
+    setPlaylists(data);
+  };
 
   useEffect(() => {
-    fetch("/api/playlists")
-      .then((res) => res.json())
-      .then((data) => setPlaylists(data))
-      .catch((err) => console.error("Failed to fetch playlists:", err));
-  }, []);
+    if (status === "authenticated") {
+      fetchPlaylists();
+    }
+  }, [status]);
+
+  const handleRename = async (id) => {
+    const res = await fetch(`/api/playlists/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: renameValue }),
+    });
+    if (res.ok) {
+      setRenamingId(null);
+      fetchPlaylists();
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm("Delete this playlist?")) return;
+    const res = await fetch(`/api/playlists/${id}`, { method: "DELETE" });
+    if (res.ok) fetchPlaylists();
+  };
+
+  if (status === "loading") return null;
+
+  if (status === "unauthenticated") {
+    return (
+      <div className="p-6 text-white text-center">
+        <p className="mb-4">Please sign in to manage your playlists.</p>
+        <button
+          onClick={() =>
+            signIn("google", {
+              callbackUrl: window.location.href,
+              redirect: false,
+            }).then((res) => {
+              if (res?.url) window.location.href = res.url;
+            })
+          }
+          className="text-yellow-300 hover:text-yellow-200 underline"
+        >
+          Sign in with Google →
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>
       <Head>
-        <title>Manage Playlists | Foul Domain</title>
+        <title>Your Playlists</title>
       </Head>
-      <main className="min-h-screen bg-gray-950 text-white px-4 py-10">
-        <div className="max-w-3xl mx-auto space-y-8">
-          <h1 className="text-3xl font-bold text-yellow-300">Manage Your Playlists</h1>
+      <div className="max-w-xl mx-auto p-6 text-white">
+        <h1 className="text-2xl font-bold mb-4">Your Playlists</h1>
 
-          {playlists.length === 0 ? (
-            <p className="text-white/60">You don’t have any playlists yet.</p>
-          ) : (
-            <ul className="divide-y divide-white/10 border border-white/10 rounded-xl overflow-hidden">
-              {playlists.map((p) => (
-                <li key={p.id} className="flex items-center justify-between px-4 py-3">
-                  <div>
-                    <Link
-                      href={`/playlists/${p.id}`}
-                      className="text-indigo-400 hover:underline"
-                    >
-                      {p.name}
-                    </Link>
-                  </div>
-                  <div className="space-x-2">
-                    <button
-                      onClick={() => alert("🔧 Rename coming soon")}
-                      className="text-sm text-white/50 hover:text-white"
-                    >
-                      Rename
-                    </button>
-                    <button
-                      onClick={() => alert("🗑️ Delete coming soon")}
-                      className="text-sm text-red-400 hover:text-red-300"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </main>
+        {playlists.length === 0 ? (
+          <p className="text-white/60 mb-4">No playlists yet.</p>
+        ) : (
+          <ul className="space-y-2 mb-6">
+            {playlists.map((p) => (
+              <li
+                key={p.id}
+                className="flex items-center justify-between bg-white/5 p-3 rounded"
+              >
+                {renamingId === p.id ? (
+                  <input
+                    value={renameValue}
+                    onChange={(e) => setRenameValue(e.target.value)}
+                    onBlur={() => handleRename(p.id)}
+                    onKeyDown={(e) => e.key === "Enter" && handleRename(p.id)}
+                    autoFocus
+                    className="bg-gray-800 text-white px-2 py-1 rounded w-full"
+                  />
+                ) : (
+                  <span>{p.name}</span>
+                )}
+                <div className="ml-3 flex gap-2">
+                  <button
+                    onClick={() => {
+                      setRenameValue(p.name);
+                      setRenamingId(p.id);
+                    }}
+                    className="text-white/50 hover:text-white text-sm"
+                    title="Rename"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    onClick={() => handleDelete(p.id)}
+                    className="text-red-400 hover:text-red-300 text-sm"
+                    title="Delete"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <h2 className="text-lg font-semibold mb-2">Create New Playlist</h2>
+        <CreatePlaylistForm onCreated={fetchPlaylists} />
+      </div>
     </>
   );
 }

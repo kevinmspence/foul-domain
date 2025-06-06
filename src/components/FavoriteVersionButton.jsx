@@ -1,45 +1,46 @@
-import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useSession, signIn } from "next-auth/react";
+import { useState } from "react";
+import { FaPlus } from "react-icons/fa"; // example icon
 
 export default function FavoriteVersionButton({ entryId }) {
-  const { data: session } = useSession();
-  const [favorited, setFavorited] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { data: session, status } = useSession();
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (!session) return;
+  const handleClick = async () => {
+    if (status === "unauthenticated") {
+      // 🔒 Show sign-in modal
+      signIn(); // opens default Google sign-in
+      return;
+    }
 
-    axios
-      .get(`/api/favorites/version-status?entryId=${entryId}`)
-      .then((res) => {
-        setFavorited(res.data.favorited);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch version favorite status:", err);
-        setLoading(false);
-      });
-  }, [entryId, session]);
-
-  const toggleFavorite = async () => {
     try {
-      const res = await axios.post("/api/favorites/toggle-version", { entryId });
-      setFavorited(res.data.favorited);
+      setIsLoading(true);
+      const res = await fetch("/api/favorites/toggle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entryId }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update favorite.");
+      }
+
+      // Optionally: show a toast or update local state
     } catch (err) {
-      console.error("Error toggling version favorite:", err);
+      console.error("Favorite toggle error:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (!session) return null;
-  if (loading) return <span className="text-sm text-gray-400">...</span>;
-
   return (
     <button
-      onClick={toggleFavorite}
-      className={`ml-2 text-sm ${favorited ? "text-yellow-400" : "text-gray-400"} hover:text-yellow-500`}
+      onClick={handleClick}
+      className="text-white hover:text-yellow-400 transition"
+      disabled={isLoading}
+      title={status === "unauthenticated" ? "Sign in to add to playlist" : "Add to Favorites"}
     >
-      {favorited ? "★" : "☆"}
+      <FaPlus />
     </button>
   );
 }

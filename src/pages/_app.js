@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 import { AudioPlayerProvider } from "@/components/AudioPlayerContext";
 import NowPlayingBar from "@/components/NowPlayingBar";
 import { SessionProvider, useSession, signIn, signOut } from "next-auth/react";
+import { Toaster } from "react-hot-toast";
 
 function AuthStatus() {
   const { data: session, status } = useSession();
@@ -78,12 +79,15 @@ export default function App({ Component, pageProps }) {
       <SessionProvider>
         <AudioPlayerProvider>
           <Layout>
+            <Toaster position="top-right" />
             <div className="p-4 text-right">
               <AuthStatus />
             </div>
             <Component {...pageProps} />
-            <NowPlayingBar />
           </Layout>
+
+          {/* ✅ Render player outside the layout */}
+          <NowPlayingBar />
         </AudioPlayerProvider>
       </SessionProvider>
     </>

@@ -4,17 +4,21 @@ import sql from "@/lib/sql";
 
 export default async function handler(req, res) {
   const session = await getServerSession(req, res, authOptions);
-  if (!session) return res.status(401).json({ error: "Unauthorized" });
+
+  // 🚫 If no session, return an empty array (instead of 401)
+  if (!session) {
+    return res.status(200).json([]); // important: always return consistent type
+  }
 
   const userId = session.user.userid;
 
-  // ✅ Check if "Favorites" playlist exists for the user
+  // ✅ Check if "Favorites" playlist exists
   const existing = await sql`
     SELECT * FROM "Playlist"
     WHERE userid = ${userId} AND name = 'Favorites';
   `;
 
-  // ✅ Create "Favorites" if it doesn't exist
+  // ✅ Create it if missing
   if (existing.length === 0) {
     await sql`
       INSERT INTO "Playlist" (name, userid)
@@ -22,7 +26,7 @@ export default async function handler(req, res) {
     `;
   }
 
-  // 🔄 Return all playlists
+  // ✅ Return user's playlists
   const playlists = await sql`
     SELECT id, name FROM "Playlist"
     WHERE userid = ${userId}

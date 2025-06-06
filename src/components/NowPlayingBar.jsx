@@ -18,11 +18,15 @@ export default function NowPlayingBar() {
   const [duration, setDuration] = useState(0);
 
   useEffect(() => {
+    console.log("🎧 currentTrack set:", currentTrack);
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
 
+    console.log("🔊 Setting audio.src:", currentTrack.url);
     audio.src = currentTrack.url;
-    audio.play().catch(() => {});
+    audio.play()
+      .then(() => console.log("✅ Playback started"))
+      .catch((err) => console.error("🚫 Audio playback failed:", err));
   }, [currentTrack]);
 
   const togglePlay = () => {
@@ -70,16 +74,20 @@ export default function NowPlayingBar() {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  if (!currentTrack) return null;
+  if (!currentTrack) {
+    console.log("🔕 No currentTrack, bar will not render");
+    return null;
+  }
 
   return (
     <div className="fixed bottom-0 left-0 right-0 border-t border-gray-300 bg-white shadow-lg z-50 px-4 py-3 text-gray-900">
       <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-3 md:gap-6 justify-between">
         <div className="w-full md:w-1/3 truncate">
           <div className="font-bold text-sm md:text-base truncate">{currentTrack.title}</div>
-          {currentShow && (
+          {currentShow?.venue && (
             <div className="text-xs text-gray-600 truncate">
-              {currentShow.venue}, {currentShow.city} {currentShow.state} — {currentShow.date}
+              {currentShow.venue}, {currentShow.city} {currentShow.state} —{" "}
+              {new Date(currentShow.showdate).toLocaleDateString()}
             </div>
           )}
         </div>

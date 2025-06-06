@@ -31,11 +31,13 @@ export const authOptions = {
 
   callbacks: {
     async redirect({ url, baseUrl }) {
+      // ✅ Only allow internal redirects
+      if (url.startsWith(baseUrl)) return url;
       return baseUrl;
     },
     async session({ session, user }) {
       session.user.id = user.id;
-      session.user.userid = user.id; // ✅ Fix for lowercase user ID field
+      session.user.userid = user.id; // ✅ lowercase alias
       return session;
     },
     async jwt({ token, account }) {
