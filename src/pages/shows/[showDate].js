@@ -1,9 +1,9 @@
-// pages/shows/[showDate].js
 import Head from 'next/head';
 import SetScroll from '@/components/SetScroll';
 import ShowNotes from '@/components/ShowNotes';
 import Link from 'next/link';
 import sql from '@/lib/sql';
+import FavoriteShowButton from '@/components/FavoriteShowButton';
 
 export async function getServerSideProps(context) {
   const { showDate } = context.params;
@@ -138,6 +138,9 @@ export default function SetlistPage({ show, prevShow, nextShow }) {
             <p className="text-gray-300 text-lg mt-1">
               {show.city}, {show.state} — {formattedDate}
             </p>
+            <div className="mt-4">
+              <FavoriteShowButton showId={show.showid} />
+            </div>
           </div>
 
           <div className="flex justify-center flex-col sm:flex-row sm:flex-wrap sm:gap-6">

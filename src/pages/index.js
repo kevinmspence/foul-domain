@@ -1,6 +1,19 @@
 import { useRef, useEffect } from 'react';
 import Head from 'next/head';
 import SearchBox from '@/components/SearchBox';
+import { useSession } from 'next-auth/react';
+
+function DebugSession() {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") return <p>Loading session...</p>;
+
+  return session ? (
+    <pre className="text-green-400">✅ Signed in as: {session.user.email}</pre>
+  ) : (
+    <pre className="text-red-400">❌ Not signed in</pre>
+  );
+}
 
 export default function Home() {
   const searchRef = useRef(null);
